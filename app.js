@@ -24,6 +24,7 @@ app.get('/', function (req, res) {
 });
 app.use('/users',users);
 
+require("./models/database/redis/connect");
 require("./models/database/mongo/connect")(mongoose, ()=>{
     app.listen(port, function () {
         console.log("http://localhost:".concat(port));

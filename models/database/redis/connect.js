@@ -1,5 +1,5 @@
 
-const config = require('../../../config.json');
+const config = require('../../.././config/config.json');
 const redis = require('redis');
 
 const redisClient = redis.createClient(config.database.redis.url, config.database.redis.option);

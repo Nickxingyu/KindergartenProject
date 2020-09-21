@@ -1,7 +1,7 @@
 /*
  * Practice mongoose
  */
-const config = require('../../../config.json');
+const config = require('../../.././config/config.json');
 
 module.exports = function (mongoose, callback) {
     mongoose.set('useNewUrlParser', true);

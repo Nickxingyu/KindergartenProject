@@ -5,7 +5,7 @@ const logger = require("morgan");
 const mongoose = require("mongoose");
 mongoose.Promise = global.Promise;
 
-const config = require("./config.json");
+const config = require("./config/config.json");
 const location = require("./routes/location");
 const users = require("./routes/users/index");
 

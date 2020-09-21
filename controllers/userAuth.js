@@ -16,8 +16,15 @@ module.exports = {
                 return callback(null, false, login_message.no_user_founded);
             if (!user.validPassword(password))
                 return callback(null, false, login_message.wrong_password);
+            /*
+             *
+             * add code to build JWT Token with api key
+             * 
+             */
             return callback(null, user, {
-                //headers: { Authorization: results.token }
+                /*
+                 * add " headers: { Authorization: results.token } "
+                 */
                 body:login_message.authentication_succeeded
             })
         })
@@ -36,8 +43,15 @@ module.exports = {
                     return callback(err);
                 if(!user) 
                     return callback(null, user, login_message.no_user_founded)
+                /*
+                 *
+                 * add code to build JWT Token with api key
+                 * 
+                 */
                 return callback(null, user, {
-                    //headers: { Authorization: results.token }
+                    /*
+                     * add " headers: { Authorization: results.token } "
+                     */
                     body: login_message.authentication_succeeded
                 })
             })
@@ -46,7 +60,7 @@ module.exports = {
     send_verification_code: (phone) => {
 
     },
-    check_verification_code: check_verification_code(phone, user_verification_code)
+    //check_verification_code: 
 };
 
 function check_verification_code(phone, user_verification_code) {

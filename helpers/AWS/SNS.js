@@ -5,11 +5,12 @@ AWS.config = AWS_config;
 var sns = new AWS.SNS();
 
 module.exports = {
-    sms_now: (user, msg, callback) => {
+    sms_now: (phone, msg, callback) => {
+        phone = '+886' + phone.slice(1);
         const params = {
-            phoneNumber : user.phone,
-            message : msg
+            PhoneNumber : phone,
+            Message : msg
         };
-        sns.publish(params,callback(err, data))
+        sns.publish(params,callback)
     }
 }

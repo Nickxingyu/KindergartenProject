@@ -5,6 +5,7 @@ var schema = mongoose.Schema({
     phone: String,
     apiKey: String,
     secretKey: String,
+    publicKey: String,
     userAgent: String,
 }, {
     timestamps: true,

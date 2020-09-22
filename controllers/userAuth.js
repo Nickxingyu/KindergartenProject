@@ -23,7 +23,15 @@ module.exports = {
     login_by_verification_code: (userInfo, callback) => {
         const {phone, token} = userInfo;
         if(!phone) return callback(null, false, login_message.content_not_complete)
-        if(!token) return verification_service.send_verifiaction_code(phone, callback)
-        return verification_service.check_verification_code_for_JWT(phone, token,callback)
+        User.findOne({"user.phone": phone}, (err,user)=>{
+            if (err)
+                return callback(err);
+            if (!user)
+                return callback(null, false, login_message.no_user_founded);
+            if (!token) 
+                return verification_service.send_verifiaction_code(phone, callback);
+            else
+                return verification_service.check_verification_code_for_JWT(phone, token,callback);
+        })
     }
 };

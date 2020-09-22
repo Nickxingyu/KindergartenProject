@@ -7,8 +7,8 @@ function msg_type_generator(type){
     }
 }
 
-const login_message = msg_type_generator('login_message');
-const verification_code_message = msg_type_generator('verification_code_message');
+const login_message = msg_type_generator('Login_message');
+const verification_code_message = msg_type_generator('Verification_code_message');
 
 module.exports = {
     login_message:{
@@ -21,7 +21,9 @@ module.exports = {
     verification_code_message:{
         no_user_founded: verification_code_message('No user founded'),
         invalid_verification_code: verification_code_message('Invalid verification code'),
-        expired_verification_code: verification_code_message('Expired verification code')
+        expired_verification_code: verification_code_message('Expired verification code'),
+        verification_code_is_not_expired: verification_code_message("Verification code isn't expired"),
+        code_is_sended: verification_code_message('Verification code is sended')
     }
 }
 

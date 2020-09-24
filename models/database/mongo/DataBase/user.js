@@ -3,6 +3,7 @@ var bcrypt = require('bcrypt');
 
 var schema = mongoose.Schema({
     user:{
+        uuid: String,
         email: String,
         phone: String,
         password: {

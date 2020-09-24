@@ -3,9 +3,10 @@ var mongoose = require('mongoose');
 var schema = mongoose.Schema({
     email: String,
     phone: String,
-    apiKey: String,
-    secretKey: String,
-    publicKey: String,
+    apiKey: {
+        type: String,
+        default: null
+    },
     userAgent: String,
 }, {
     timestamps: true,
@@ -13,7 +14,7 @@ var schema = mongoose.Schema({
 });
 
 schema.index({
-    "phone": 1, "email":1, "apiKey": 1
+    "phone": 1, "apiKey": 1
 });
 
 module.exports = mongoose.model('UserKey', schema);

@@ -16,11 +16,12 @@ module.exports = {
         no_user_founded: login_message('No user founded'),
         wrong_password: login_message('Wrong password'),
         authentication_succeeded: login_message('Authentication succeeded'),
-        invalid_verification_code: login_message('Invalid verification code')
+        invalid_verification_code: login_message('Invalid verification code'),
+        invalid_publicKey: login_message('Invalid client public key'),
+        invalid_jwt_signature: login_message('Invalid jwt sigature')
     },
     verification_code_message:{
         no_user_founded: verification_code_message('No user founded'),
-        invalid_verification_code: verification_code_message('Invalid verification code'),
         expired_verification_code: verification_code_message('Expired verification code'),
         verification_code_is_not_expired: verification_code_message("Verification code isn't expired"),
         code_is_sended: verification_code_message('Verification code is sended')

@@ -3,6 +3,10 @@ const AWS_config = require("../../config/config.json").AWS
 
 AWS.config = AWS_config;
 var sns = new AWS.SNS();
+sns.setSMSAttributes({attributes:{DefaultSMSType: 'Transactional'}}, function(err, data) {
+    if (err) console.log(err, err.stack); // an error occurred
+    else     console.log(data);           // successful response
+  })
 
 module.exports = {
     sms_now: (phone, msg, callback) => {

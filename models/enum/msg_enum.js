@@ -9,7 +9,8 @@ function msg_type_generator(type){
 
 const login_message = msg_type_generator('Login_message');
 const verification_code_message = msg_type_generator('Verification_code_message');
-
+const decrypt_message = msg_type_generator('Decrypt message');
+const message = msg_type_generator('message');
 module.exports = {
     login_message:{
         content_not_complete: login_message('Content not complete'),
@@ -24,7 +25,14 @@ module.exports = {
         no_user_founded: verification_code_message('No user founded'),
         expired_verification_code: verification_code_message('Expired verification code'),
         verification_code_is_not_expired: verification_code_message("Verification code isn't expired"),
-        code_is_sended: verification_code_message('Verification code is sended')
+        code_is_sended: verification_code_message('Verification code is sended'),
+        no_verification_code_founded: verification_code_message('No verification code founded')
+    },
+    decrypt_message:{
+        invalid_publicKey: decrypt_message('Invalid publicKey')
+    },
+    message:{
+        succeed: message('succeed')
     }
 }
 

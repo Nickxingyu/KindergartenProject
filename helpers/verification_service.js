@@ -28,15 +28,11 @@ module.exports = {
             if(isExpired) return callback(null, false, info)
             try{
                 var decode = jwt.verify(token, verification_code)
+                info.decode = decode;
             }catch(err){
                 return callback(null, false, login_message.invalid_jwt_signature)
             }
-            const {publicKey} = decode;
-            return build_apiKey_token({phone, publicKey},(err, done, info)=>{
-                if(err) return callback(err)
-                if(!done) return callback(null, false, info)
-                return callback(null, true, info)
-            })
+            return callback(null, true , info)
         })
     },
     check_verification_code: (phone, user_verification_code, callback) => {
@@ -52,9 +48,10 @@ module.exports = {
 
 function is_verification_code_expired(phone, callback) {
     redis.hgetall(phone,(err, reply)=>{
+        if(!reply) return callback(null, true, verification_code_message.no_verification_code_founded)
         const {code_expired_time, verification_code} = reply;
         if(err) return callback(err)
-        if(!code_expired_time) return callback(null, true, verification_code_message.expired_verification_code)
+        if(!code_expired_time) return callback(null, true, verification_code_message.no_verification_code_founded)
         if(new Date().valueOf() < new Date(code_expired_time).valueOf())
             return callback(null, false, verification_code_message.verification_code_is_not_expired, verification_code)
         else
@@ -64,7 +61,7 @@ function is_verification_code_expired(phone, callback) {
 
 function set_verification_code(phone, code, callback) {
     const expired_time = new Date();
-    expired_time.setSeconds(expired_time.getSeconds() + 60 * 300);
+    expired_time.setSeconds(expired_time.getSeconds() + 60 * 3000);
     redis.hmset(phone,['verification_code', code, 'code_expired_time', expired_time],(err,OK) => {
         if(err) return callback(err)
         return callback(null, true)

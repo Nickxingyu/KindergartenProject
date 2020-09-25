@@ -40,6 +40,17 @@ router.post("/loginByVerificationCode",(req, res, next)=>{
     })
 })
 
+router.post('/modifyPassword',(req,res,next) => {
+    const {phone} = req.body;
+    const authorization = req.header('Authorization');
+    const token = authorization ? authorization.replace('Bearer ', '') : null;
+    userAuth.modify_password({phone, token}, (err, result, info) => {
+        if(err) next(err)
+        else if(!result) res.status(401).json(info);   
+        else res.json(info);
+    })
+})
+
 router.post("/getVerificationCode",(req, res, next)=>{
     const {phone} = req.body;
     userAuth.send_verification_code(phone,(err, user, info)=>{

@@ -51,12 +51,29 @@ router.post('/modifyPassword',(req,res,next) => {
     })
 })
 
+
+router.get('/test',(req,res,next)=>{
+    userKey.create({
+        email:'nick19960723@gmail.com',
+        phone:'0985895611'
+    },(err)=>{
+        if(err) console.log(err);
+        res.json({done: true})
+    })
+})
+
+router.get('/getkey',(req,res,next)=>{
+    const {publicKey, privateKey} = key.generateKeyPair();
+    res.json({publicKey, privateKey})
+})
+
+
 router.post("/getVerificationCode",(req, res, next)=>{
     const {phone} = req.body;
     userAuth.send_verification_code(phone,(err, user, info)=>{
         if(err) next(err)
-        if(!user) res.status(401).json(info);
-        res.json(info);
+        else if(!user) res.status(401).json(info);
+        else res.json(info);
     })
 })
 

@@ -4,6 +4,7 @@ var bcrypt = require('bcrypt');
 var schema = mongoose.Schema({
     user:{
         uuid: String,
+        address: String,
         email: String,
         phone: String,
         password: {
@@ -13,7 +14,11 @@ var schema = mongoose.Schema({
         name: {
             type: String,
             default: null
-        }
+        },
+        role: String,
+        pickup: Boolean,
+        pickupList: String,
+        children: [String]
     },
     active: {
         type: Boolean,

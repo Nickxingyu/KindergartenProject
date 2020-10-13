@@ -6,7 +6,93 @@ const PickupList = require('../models/database/mongo/DataBase/pickupList');
 const User = require('../models/database/mongo/DataBase/user');
 const Direction = require('../models/database/mongo/DataBase/direction');
 
-router.post('/getLocation', (req, res, next) => {
+router.post('/addParent',(req,res,next)=>{
+    const uuid = uuidv4()
+    let {phone, password, name, address} = req.body
+    if(!password) res.status(401).json(api_message.content_not_complete())
+    else{
+        password = User.generateHash(password)
+        User.insertMany([
+            {
+                user:{
+                    uuid,
+                    phone,
+                    password,
+                    name,
+                    role: 'parents',
+                    address,
+                    children:[]
+                }
+            }
+        ],(err, result)=>{
+            if(err) res.status(500).json(database_message.database_fail())
+            else res.json(message.succeed())
+        })
+    }
+})
+
+router.post('/add',(req,res,next)=>{
+    const uuid = uuidv4()
+    let {parents_phone, phone, password, name, address} = req.body
+    if(!password) res.status(401).json(api_message.content_not_complete())
+    else{
+        User.findOne({'user.phone':parents_phone},(err, user)=>{
+            if(err) res.status(500).json(database_message.database_fail())
+            else if(!user) res.status(401).json(database_message.no_user_founded())
+            else{
+                user.user.children.push(uuid)
+                user.save((err, result)=>{
+                    if(err) res.status(500).json(database_message.database_fail())
+                    else{
+                        password = User.generateHash(password)
+                        User.insertMany([
+                            {
+                                user:{
+                                    uuid,
+                                    phone,
+                                    password,
+                                    name,
+                                    role: 'child',
+                                    address
+                                }
+                            }
+                        ],(err, result)=>{
+                            if(err) res.status(500).json(database_message.database_fail())
+                            else res.json(message.succeed())
+                        })
+                    } 
+                })
+            }
+        })
+    }
+})
+
+router.get('/allChildren',(req, res, next)=>{
+    User.find({'user.role':'child'},(err, users)=>{
+        if(err) res.status(500).json(database_message.database_fail())
+        else{
+            const children = users.map(user=>{
+                const {uuid, name, phone, pickup} = user.user
+                return {
+                    uuid,
+                    name,
+                    phone,
+                    pickup
+                }
+            }) 
+            res.json(children)
+        }
+    })
+})
+
+router.get('/allChildrenPickup',(req, res, next)=>{
+    User.updateMany({'user.role':'child'}, {'user.pickup':true},(err, users)=>{
+        if(err) res.status(500).json(database_message.database_fail())
+        else res.json(message.succeed())
+    })
+})
+
+router.get('/location', (req, res, next) => {
     const {phone, child_uuid} = req.body;
     User.findOne({
         'user.phone':phone,
@@ -165,7 +251,7 @@ router.post('/arrive', (req, res, next) => {
     })
 })
 
-router.get('/getAllPickupChildren',(req,res,next)=>{
+router.get('/allPickupChildren',(req,res,next)=>{
     User.find({
         'user.pickup':true,
         'user.role':'child'
@@ -173,9 +259,11 @@ router.get('/getAllPickupChildren',(req,res,next)=>{
         if(err) res.status(500).json(database_message.database_fail())
         else{
             const children = users.map(user => {
+                const {uuid, name, pickup} = user.user
                 return {
-                    uuid: user.user.uuid,
-                    name: user.user.name
+                    uuid,
+                    name,
+                    pickup
                 }
             })
             res.json(children)
@@ -183,7 +271,7 @@ router.get('/getAllPickupChildren',(req,res,next)=>{
     })
 })
 
-router.post('/getChildren',(req,res,next)=>{
+router.get('/children',(req,res,next)=>{
     const {phone} = req.body;
     User.findOne({
         'user.phone':phone,

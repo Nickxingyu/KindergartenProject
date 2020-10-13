@@ -72,7 +72,6 @@ module.exports = {
 };
 
 function set_password(phone, password, callback) {
-    console.log(password);
     const hash_password = User.generateHash(password);
     User.findOneAndUpdate({"user.phone": phone},{"user.password":hash_password},{new:true},(err, result)=>{
         if(err) return callback(err)

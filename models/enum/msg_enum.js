@@ -22,7 +22,8 @@ module.exports = {
         authentication_succeeded: () => { return login_message('Authentication succeeded') },
         invalid_verification_code: () => { return login_message('Invalid verification code') },
         invalid_publicKey: () => { return login_message('Invalid client public key') },
-        invalid_jwt_signature: () => { return login_message('Invalid jwt sigature') }
+        invalid_jwt_signature: () => { return login_message('Invalid jwt sigature') },
+        no_public_key: () => { return login_message('No client public key') }
     },
     verification_code_message:{
         no_user_founded: () => { return verification_code_message('No user founded') },

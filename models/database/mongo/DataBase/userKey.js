@@ -1,7 +1,6 @@
 var mongoose = require('mongoose');
 
 var schema = mongoose.Schema({
-    email: String,
     phone: String,
     apiKey: {
         type: String,

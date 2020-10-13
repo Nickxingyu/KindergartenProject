@@ -2,11 +2,35 @@ const express = require('express');
 const router = express.Router();
 const PickupList = require('../models/database/mongo/DataBase/pickupList');
 const Direction = require('../models/database/mongo/DataBase/direction');
+const User = require('../models/database/mongo/DataBase/user');
 const {computeRemainingTime} = require('../helpers/GCP/map');
 const { database_message, message } = require('../models/enum/msg_enum');
+const {v4:uuidv4} = require('uuid');
 
+router.post('/add',(req, res, next)=>{
+    const uuid = uuidv4()
+    let {phone, password, name} = req.body
+    if(!password) res.status(401).json(api_message.content_not_complete())
+    else{
+        password = User.generateHash(password)
+        User.insertMany([
+            {
+                user:{
+                    uuid,
+                    phone,
+                    password,
+                    name,
+                    role:'driver'
+                }
+            }
+        ],(err, result)=>{
+            if(err) res.status(500).json(database_message.database_fail())
+            else res.json(message.succeed())
+        })
+    }
+})
 
-router.get('/getAllDriver',(req, res, next)=>{
+router.get('/allDriver',(req, res, next)=>{
     User.find({
         'user.role':'driver'
     },(err, users)=>{
@@ -25,7 +49,7 @@ router.get('/getAllDriver',(req, res, next)=>{
     })
 })
 
-router.post('/setLocation', (req, res, next) => {
+router.put('/location', (req, res, next) => {
     const {phone, location} = req.body
     const {0:lat, 1:lng} = location.split(',');
     PickupList.findOne({

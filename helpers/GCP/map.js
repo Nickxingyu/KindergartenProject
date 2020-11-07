@@ -3,6 +3,28 @@ const client = new Client({});
 const key = require('../../config/config.json').google.Map_Api_Key;
 const kindergarten_address = require('../../config/config.json').kindergarten.address;
 
+function getDirection(location, direction, callback){
+    const waypoints = direction.place_ids.map(place_id => {
+        return "place_id:"+place_id
+    })
+    return client.directions({
+        params:{
+            origin: location,
+            destination: kindergarten_address,
+            waypoints: waypoints,
+            optimize: false,
+            key
+        },
+        timeout: 3000
+    }).then(result=>{
+        const result_json = result.data
+        return callback(null, result_json)
+    }).catch(err=>{
+        console.log(err)
+        return callback(err)
+    })
+}
+
 function generateDirection(address_list, callback){
     return client.directions({
         params:{
@@ -46,5 +68,6 @@ function computeRemainingTime(places, callback){
 
 module.exports = {
     generateDirection,
-    computeRemainingTime
+    computeRemainingTime,
+    getDirection
 }

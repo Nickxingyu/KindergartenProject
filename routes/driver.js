@@ -3,8 +3,8 @@ const router = express.Router();
 const PickupList = require('../models/database/mongo/DataBase/pickupList');
 const Direction = require('../models/database/mongo/DataBase/direction');
 const User = require('../models/database/mongo/DataBase/user');
-const {computeRemainingTime} = require('../helpers/GCP/map');
-const { database_message, message } = require('../models/enum/msg_enum');
+const {computeRemainingTime, getDirection} = require('../helpers/GCP/map');
+const { database_message, message, api_message } = require('../models/enum/msg_enum');
 const {v4:uuidv4} = require('uuid');
 
 router.post('/add',(req, res, next)=>{
@@ -53,10 +53,11 @@ router.put('/location', (req, res, next) => {
     const {phone, location} = req.body
     const {0:lat, 1:lng} = location.split(',');
     PickupList.findOne({
-        '$or':[{'driver.phone': phone},{'teacher.phone': phone}],
-        done: false
+        'driver.phone': phone,
+        status: 'on_the_way'
     }, (err, pickupList) => {
         if(err) res.status(500).json(err)
+        else if(!pickupList) res.json([])
         else{
             const pickupList_uuid = pickupList.uuid;
             Direction.findOne({pickupList: pickupList_uuid},(err, direction)=>{
@@ -71,7 +72,7 @@ router.put('/location', (req, res, next) => {
                     if(err) res.status(500).json(err)
                     else{
                         const new_driver_status = pickupList.driver;
-                        const new_children_status = pickupList.children.slice();
+                        const new_children_status = pickupList.child_list.slice();
                         new_driver_status.location = {
                             lat,lng
                         };
@@ -81,10 +82,15 @@ router.put('/location', (req, res, next) => {
                         }
                         PickupList.findOneAndUpdate({uuid: pickupList_uuid},{
                             driver: new_driver_status,
-                            children: new_children_status
+                            child_list: new_children_status
                         },(err)=>{
                             if(err) res.status(500).json(database_message.database_fail())
-                            else res.json(message.succeed())
+                            else {
+                                getDirection(location, direction, (err, direction)=>{
+                                    if(err) res.status(500).json(err)
+                                    else res.json(direction)
+                                })
+                            }
                         })
                     }
                 })

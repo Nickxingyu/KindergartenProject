@@ -10,9 +10,9 @@ const swaggerDocument = require('./swagger.json');
 const config = require("./config/config.json");
 const users = require("./routes/users/index");
 const child = require('./routes/child');
-const direction = require('./routes/direction');
 const driver = require('./routes/driver');
 const teacher = require('./routes/teacher');
+const pickupList = require('./routes/pickupList');
 const { JwtToBody } = require("./middlewares/validations/authorization/accessValidate");
 
 var app = express();
@@ -26,12 +26,9 @@ app.use(bodyParser.urlencoded({
 app.use(helmet());
 app.use(logger(':date - :method :url HTTP/:http-version :status - :response-time ms'));
 app.use(JwtToBody)
-app.get('/', function (req, res) {
-    res.status(200).send("Hello World")
-});
 app.use('/users',users);
 app.use('/child',child);
-app.use('/direction',direction);
+app.use('/pickupList', pickupList);
 app.use('/driver',driver);
 app.use('/teacher',teacher)
 

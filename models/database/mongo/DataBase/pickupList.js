@@ -3,23 +3,37 @@ var mongoose = require('mongoose');
 var child_info = mongoose.Schema({
     uuid: String,
     remaining_time: String,
-    address: String
+    address: String,
+    status: String
 })
 
 var schema = mongoose.Schema({
     uuid:String,
     driver:{
-        phone: String,
+        phone: {
+            type: String,
+            default: null
+        },
         location: {
-            lat: String,
-            lng: String
+            lat: {
+                type: String,
+                default: null
+            },
+            lng: {
+                type: String,
+                default: null
+            }
         }
     },
     teacher:{
-        phone: String
+        phone: {
+            type: String,
+            default: null
+        }
     },
-    children: [child_info],
-    done: Boolean
+    child_list: [child_info],
+    status: String,
+    number: Number
 }, {
     timestamps: true,
     versionKey: false

@@ -28,6 +28,29 @@ router.post('/add',(req, res, next)=>{
     }
 })
 
+router.post('/addPrincipal',(req, res, next)=>{
+    const uuid = uuidv4()
+    let {phone, password, name} = req.body
+    if(!password) res.status(401).json(api_message.content_not_complete())
+    else{
+        password = User.generateHash(password)
+        User.insertMany([
+            {
+                user:{
+                    uuid,
+                    phone,
+                    password,
+                    name,
+                    role: 'principal'
+                }
+            }
+        ],(err, result)=>{
+            if(err) res.status(500).json(database_message.database_fail())
+            else res.json(message.succeed())
+        })
+    }
+})
+
 router.get('/allTeacher',(req,res,next)=>{
     User.find({
         'user.role':'teacher'

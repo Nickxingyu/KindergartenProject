@@ -5,6 +5,7 @@ const {api_message, database_message, message} = require('../models/enum/msg_enu
 const PickupList = require('../models/database/mongo/DataBase/pickupList');
 const User = require('../models/database/mongo/DataBase/user');
 const Direction = require('../models/database/mongo/DataBase/direction');
+const {getPickupStatus, getPickupDay, modifyPickupDays} = require('../controllers/children');
 
 router.post('/addParent',(req,res,next)=>{
     const uuid = uuidv4()
@@ -19,7 +20,7 @@ router.post('/addParent',(req,res,next)=>{
                     phone,
                     password,
                     name,
-                    role: 'parents',
+                    role: 'parent',
                     address,
                     children:[]
                 }
@@ -33,38 +34,35 @@ router.post('/addParent',(req,res,next)=>{
 
 router.post('/add',(req,res,next)=>{
     const uuid = uuidv4()
-    let {parents_phone, phone, password, name, address} = req.body
-    if(!password) res.status(401).json(api_message.content_not_complete())
-    else{
-        User.findOne({'user.phone':parents_phone},(err, user)=>{
-            if(err) res.status(500).json(database_message.database_fail())
-            else if(!user) res.status(401).json(database_message.no_user_founded())
-            else{
-                user.user.children.push(uuid)
-                user.save((err, result)=>{
-                    if(err) res.status(500).json(database_message.database_fail())
-                    else{
-                        password = User.generateHash(password)
-                        User.insertMany([
-                            {
-                                user:{
-                                    uuid,
-                                    phone,
-                                    password,
-                                    name,
-                                    role: 'child',
-                                    address
-                                }
+    let {phone, name, address, class_number} = req.body;
+    let pickupDay = req.body.pickupDay || []
+    User.findOne({'user.phone':phone, 'user.role':'parent'},(err, user)=>{
+        if(err) res.status(500).json(database_message.database_fail())
+        else if(!user) res.json(database_message.no_user_founded())
+        else{
+            user.user.children.push(uuid)
+            user.save((err, result)=>{
+                if(err) res.status(500).json(database_message.database_fail())
+                else{
+                    User.insertMany([
+                        {
+                            user:{
+                                uuid,
+                                name,
+                                role: 'child',
+                                address,
+                                class_number,
+                                pickupDay
                             }
-                        ],(err, result)=>{
-                            if(err) res.status(500).json(database_message.database_fail())
-                            else res.json(message.succeed())
-                        })
-                    } 
-                })
-            }
-        })
-    }
+                        }
+                    ],(err, result)=>{
+                        if(err) res.status(500).json(database_message.database_fail())
+                        else res.json(message.succeed())
+                    })
+                } 
+            })
+        }
+    })
 })
 
 router.get('/allChildren',(req, res, next)=>{
@@ -85,222 +83,134 @@ router.get('/allChildren',(req, res, next)=>{
     })
 })
 
-router.get('/allChildrenPickup',(req, res, next)=>{
-    User.updateMany({'user.role':'child'}, {'user.pickup':true},(err, users)=>{
-        if(err) res.status(500).json(database_message.database_fail())
-        else res.json(message.succeed())
-    })
+router.get('/allPickupChildren',async(req, res, next)=>{
+    let pickupDay = await getPickupDay();
+    if(pickupDay.error){
+        let {status, error}= pickupDay;
+        res.status(status).json(error)
+    }
+    else res.json(pickupDay);
 })
 
-router.get('/location', (req, res, next) => {
-    const {phone, child_uuid} = req.body;
+router.post('/location', async(req, res, next) => {
+    const {phone} = req.body;
     User.findOne({
         'user.phone':phone,
-        'user.role':'parents'
+        'user.role':'parent'
     },(err, user)=>{
         if(err) res.status(500).json(database_message.database_fail())
         else if(!user) res.status(401).json(database_message.no_user_founded())
         else{
-            if(!user.user.children.includes(child_uuid))
-                res.status(401).json(api_message.child_uuid_error())
-            else{
-                User.findOne({
-                    'user.uuid': child_uuid,
-                    'user.role': 'child'
-                },(err, user)=>{
-                    if(err) res.status(500).json(database_message.database_fail())
-                    else if(!user) res.status(401).json(database_message.no_user_founded())
-                    else if(!user.user.pickup) res.status(200).json(api_message.child_not_in_pickup_list())
-                    else{
-                        PickupList.findOne({
-                            uuid: user.user.pickupList
-                        },(err, pickupList)=>{
-                            if(err) res.status(500).json(database_message.database_fail())
-                            else if(!pickupList) res.status(500).json(database_message.lost_pickupList())
-                            else{
-                                let remaining_time = null;
-                                const {location} = pickupList.driver;
-                                const {children} = pickupList;
-                                children.forEach(child=>{
-                                    if(child.uuid == child_uuid) remaining_time = child.remaining_time
-                                })
-                                res.json({
-                                    location,
-                                    remaining_time
-                                })
-                            }
-                        })
+            const {children} = user.user;
+            User.find({
+                'user.uuid': {'$in':children},
+                'user.role': 'child'
+            },async(err, children)=>{
+                if(err) res.status(500).json(database_message.database_fail())
+                else{
+                    const pickupStatus = await getPickupStatus(children)
+                    if(pickupStatus.error) {
+                        let {status, error}= children;
+                        res.status(status).json(error)
+                    }else{
+                        res.json({children:pickupStatus})
                     }
-                })
-            }
+                }
+            })
         }   
     })
-})
-
-router.post('/applyForPickUp', (req, res, next) => {
-    const {phone, child_uuid} = req.body;
-    User.findOne({
-        'user.phone': phone,
-        'user.role':'parents'
-    },(err, user)=>{
-        if(err) res.status(500).json(database_message.database_fail())
-        else if(!user) res.status(401).json(database_message.no_user_founded())
-        else{
-            if(!user.user.children.includes(child_uuid))
-                res.status(401).json(api_message.child_uuid_error())
-            else{
-                User.findOne({
-                    'user.uuid': child_uuid,
-                    'user.role': 'child'
-                },(err, user)=>{
-                    if(err) res.status(500).json(database_message.database_fail())
-                    else if(!user) res.status(401).json(database_message.no_user_founded())
-                    else{
-                        user.user.pickup = true
-                        user.save(err=>{
-                            if(err) res.status(500).json(database_message.database_fail())
-                            else res.status(200).json(message.succeed())
-                        })
-                    }
-                })
-            }
-        }    
-    })   
 })
 
 router.post('/arrive', (req, res, next) => {
     const {phone, child_uuid} = req.body;
     User.findOne({
-        'user.phone': phone,
-        'user.role':'parents'
+        'user.uuid': child_uuid,
+        'user.role': 'child'
     },(err, user)=>{
         if(err) res.status(500).json(database_message.database_fail())
-        else if(!user) res.status(401).json(database_message.no_user_founded())
+        else if(!user) res.status(500).json(database_message.no_user_founded())
         else{
-            User.findOne({
-                'user.uuid': child_uuid,
-                'user.role': 'child'
-            },(err, user)=>{
+            const pickupList_uuid = user.user.pickupList
+            PickupList.findOne({
+                uuid: pickupList_uuid,
+                status: 'on_the_way'
+            },async(err, pickupList)=>{
                 if(err) res.status(500).json(database_message.database_fail())
-                else if(!user) res.status(401).json(database_message.no_user_founded())
-                else if(!user.user.pickup) res.status(401).json(api_message.child_not_in_pickup_list())
+                else if(!pickupList) res.status(500).json(database_message.lost_pickupList())
                 else{
-                    user.user.pickup = false
-                    const pickupList_uuid = user.user.pickupList
-                    user.save(err=>{
-                        if(err) res.status(500).json(database_message.database_fail())
+                    let number = 0;
+                    for(const i in pickupList.child_list){
+                        if(pickupList.child_list[i].uuid ==child_uuid){
+                            number = i
+                            pickupList.child_list[number].status = 'arrive'
+                        } 
+                    }
+                    pickupList.save(err=>{
+                        if(err) res.status(500).json({
+                            code:'4',
+                            type:'Database',
+                            message:'Database fail'
+                        })
                         else{
-                            PickupList.findOne({
-                                uuid: pickupList_uuid,
-                                done: false
-                            },(err, pickupList)=>{
+                            Direction.findOne({
+                                pickupList: pickupList_uuid
+                            },(err, direction)=>{
                                 if(err) res.status(500).json(database_message.database_fail())
-                                else if(!pickupList) res.status(500).json(database_message.lost_pickupList())
+                                else if(!direction) res.status(500).json(database_message.lost_direction())
                                 else{
-                                    let number = 0;
-                                    for(const i in pickupList.children){
-                                        if(pickupList.children[i].uuid ==child_uuid){
-                                            number = i
-                                        } 
-                                    }
-                                    Direction.findOne({
-                                        pickupList: pickupList_uuid
-                                    },(err, direction)=>{
-                                        if(err) res.status(500).json(database_message.database_fail())
-                                        else if(!direction) res.status(500).json(database_message.lost_direction())
-                                        else{
-                                            if(direction.waypoint_order.length == 1){
-                                                PickupList.findOneAndUpdate({
-                                                    uuid: pickupList_uuid
-                                                },{
-                                                    done: true
-                                                },(err, result)=>{
-                                                    if(err) res.status(500).json(database_message.database_fail())
-                                                    else res.json(result)
-                                                })
-                                            }else{
-                                                let waypoint_order = direction.waypoint_order.slice();
-                                                let place_ids = direction.place_ids.slice();
-                                                const index = waypoint_order.indexOf(number)
-                                                const length = waypoint_order.length;
-                                                waypoint_order = waypoint_order.slice(0,index) +
-                                                                waypoint_order.slice(index+1, length)
-                                                place_ids = place_ids.slice(0,index) +
-                                                            place_ids.slice(index + 1, length)
-                                                Direction.findOneAndUpdate({
-                                                    pickupList: pickupList_uuid
-                                                },{
-                                                    waypoint_order,
-                                                    place_ids
-                                                },(err, result)=>{
-                                                    if(err) res.status(500).json(err)
-                                                    else{
-                                                        res.json(result)
-                                                    }
-                                                })
+                                    if(direction.waypoint_order.length == 1){
+                                        PickupList.findOneAndUpdate({
+                                            uuid: pickupList_uuid
+                                        },{
+                                            status: "done"
+                                        },(err, result)=>{
+                                            if(err) res.status(500).json(database_message.database_fail())
+                                            else res.json(result)
+                                        })
+                                    }else{
+                                        let waypoint_order = direction.waypoint_order.slice();
+                                        let place_ids = direction.place_ids.slice();
+                                        const index = waypoint_order.indexOf(number)
+                                        const length = waypoint_order.length;
+                                        waypoint_order = waypoint_order.slice(0,index) +
+                                                        waypoint_order.slice(index+1, length)
+                                        place_ids = place_ids.slice(0,index) +
+                                                    place_ids.slice(index + 1, length)
+                                        Direction.findOneAndUpdate({
+                                            pickupList: pickupList_uuid
+                                        },{
+                                            waypoint_order,
+                                            place_ids
+                                        },(err, result)=>{
+                                            if(err) res.status(500).json(err)
+                                            else{
+                                                res.json(result)
                                             }
-                                        }
-                                    })
+                                        })
+                                    }
                                 }
                             })
                         }
                     })
                 }
             })
-        }    
-    })
-})
-
-router.get('/allPickupChildren',(req,res,next)=>{
-    User.find({
-        'user.pickup':true,
-        'user.role':'child'
-    },(err, users)=>{
-        if(err) res.status(500).json(database_message.database_fail())
-        else{
-            const children = users.map(user => {
-                const {uuid, name, pickup} = user.user
-                return {
-                    uuid,
-                    name,
-                    pickup
-                }
-            })
-            res.json(children)
         }
     })
 })
 
-router.get('/children',(req,res,next)=>{
-    const {phone} = req.body;
-    User.findOne({
-        'user.phone':phone,
-        'user.role':'parents'
-    },(err,user)=>{
-        if(err) res.status(500).json(database_message.database_fail())
-        else if(!user) res.status(401).json(database_message.no_user_founded())
-        else{
-            const children_uuid = user.user.children;
-            User.find({
-                'user.uuid':{'$in': children_uuid},
-                'user.role': 'child'
-            },(err, users)=>{
-                if(err) res.status(500).json(database_message.database_fail())
-                else if(!users) res.status(401).json(database_message.no_user_founded())
-                else{
-                    const children = users.map(user=>{
-                        const {uuid, name, pickup} = user.user
-                        return {
-                            uuid, 
-                            name, 
-                            pickup
-                        }
-                    })
-                    res.json(children)
-                }
-            })
-        }
-    })
+router.put('/modifyPickupDays', async(req, res, next)=>{
+    const {pickupDays_list} = req.body;
+    let result;
+    try{
+        result = await modifyPickupDays(pickupDays_list);
+    }catch(e){
+        res.status(500).json({
+            code:"4",
+            type:"Database",
+            message:"Database fail"
+        })
+    }
+    res.json(message.succeed())
 })
 
 module.exports = router;

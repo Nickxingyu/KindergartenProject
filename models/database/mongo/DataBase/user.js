@@ -16,8 +16,10 @@ var schema = mongoose.Schema({
             default: null
         },
         role: String,
-        pickup: Boolean,
+        pickupDay:[Boolean],
         pickupList: String,
+        class_number: String,
+        car_number:String,
         children: [String]
     },
     active: {

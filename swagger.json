@@ -1,0 +1,1028 @@
+{
+    "swagger":"2.0",
+    "info":{
+        "description":"This is a test server",
+        "version":"1.0.0",
+        "title":"KindergartenChiu"
+    },
+    "tags":[
+        {
+            "name":"User",
+            "description":"User authorization or infomation"
+        },
+        {
+            "name":"Child",
+            "description":"Operations about child"
+        },
+        {
+            "name":"Teacher",
+            "description":"Operations about teacher"
+        },
+        {
+            "name":"Driver",
+            "description":"Operations about driver"
+        },
+        {
+            "name":"Direction",
+            "description":"Operations about direction"
+        }
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths":{
+        "/users/loginByPassword":{
+            "post":{
+                "tags":["User"],
+                "parameters":[
+                    {
+                        "name":"body",
+                        "type":"string",
+                        "in":"body",
+                        "required":"true",
+                        "schema":{
+                            "type":"object",
+                            "properties":{
+                                "phone":{
+                                    "type":"string"
+                                },
+                                "password":{
+                                    "type":"string"
+                                },
+                                "publicKey":{
+                                    "type":"string"
+                                }
+                            }
+                        },
+                        "description":"Public key is used to encrypt return apiKey."
+                    }
+                ],
+                "responses":{
+                    "200": {
+                        "description": "OK",
+                        "headers":{
+                            "Authorization":{
+                                "schema":{
+                                    "type":"string"
+                                },
+                                "description":"Jwt sign by server secret key.\n 'encrypt_apiKey' in payload is encrypted by client publicKey"
+                            }
+                        }
+                    },
+                    "401":{
+                        "decription": "Bad post",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/loginByVerificationCode":{
+            "post":{
+                "tags":["User"],
+                "parameters":[
+                    {
+                        "name":"body",
+                        "type":"string",
+                        "in":"body",
+                        "description":"If you don't have verification code, you shoud put phone in request body and get verification code from sns",
+                        "schema":{
+                            "type":"object",
+                            "properties":{
+                                "phone":{
+                                    "type":"string"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by verification code"
+                    },
+                    {
+                        "name":"phone",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"If you have verification code, you should put phone in your jwt payload to verify"
+                    },
+                    {
+                        "name":"publicKey",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"If you have verification code, you should put client's publicKey in your jwt payload to verify"
+                    }
+                ],
+                "responses":{
+                    "200": {
+                        "description": "OK",
+                        "headers":{
+                            "Authorization":{
+                                "schema":{
+                                    "type":"string"
+                                },
+                                "description":"Jwt sign by server secret key.\n 'encrypt_apiKey' in payload is encrypted by client publicKey"
+                            }
+                        }
+                    },
+                    "401":{
+                        "decription": "Bad token or post",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/modifyPassword":{
+            "post":{
+                "tags":["User"],
+                "parameters":[
+                    {
+                        "name":"body",
+                        "type":"string",
+                        "in":"body",
+                        "description":"If you don't have verification code, you shoud put phone in request body and get verification code from sns",
+                        "schema":{
+                            "type":"object",
+                            "properties":{
+                                "phone":{
+                                    "type":"string"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by verification code"
+                    },
+                    {
+                        "name":"phone",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"If you have verification code, you should put phone in your jwt payload to verify"
+                    },
+                    {
+                        "name":"password",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"If you have verification code, you should put password in your jwt payload to verify, and the password is encrypted by server public key"
+                    }
+                ],
+                "responses":{
+                    "200": {
+                        "description": "OK",
+                        "headers":{
+                            "Authorization":{
+                                "schema":{
+                                    "type":"string"
+                                },
+                                "description":"Jwt sign by server secret key.\n 'encrypt_apiKey' in payload is encrypted by client publicKey"
+                            }
+                        }
+                    },
+                    "401":{
+                        "decription": "Bad token or post",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "/child/add":{
+            "post":{
+                "tags":["Child"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    },
+                    {
+                        "name":"parents_phone",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Parent's phone"
+                    },
+                    {
+                        "name":"phone",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Child's phone"
+                    },
+                    {
+                        "name":"password",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Child's password"
+                    },
+                    {
+                        "name":"name",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Child's name"
+                    },
+                    {
+                        "name":"address",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Child's address"
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description": "OK",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "401":{
+                        "decription": "Bad token",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "/child/addParent":{
+            "post":{
+                "tags":["Child"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    },
+                    {
+                        "name":"phone",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Parent's phone"
+                    },
+                    {
+                        "name":"password",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Parent's password"
+                    },
+                    {
+                        "name":"name",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Parent's name"
+                    },
+                    {
+                        "name":"address",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Parent's name"
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description": "OK",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "401":{
+                        "decription": "Bad token",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "/child/location":{
+            "get":{
+                "tags":["Child"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    },
+                    {
+                        "name":"phone",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"User's phone"
+                    },
+                    {
+                        "name":"child_uuid",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Child's uuid"
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description": "OK",
+                        "schema":{
+                            "type":"object",
+                            "properties":{
+                                "location":{
+                                    "type":"object",
+                                    "properties":{
+                                        "lat":{
+                                            "type":"string",
+                                            "description":"latitude"
+                                        },
+                                        "lng":{
+                                            "type":"string",
+                                            "description":"longitude"
+                                        }
+                                    }
+                                },
+                                "remaining_time":{
+                                    "type":"string",
+                                    "description":"second"
+                                }
+                            }
+                        }
+                    },
+                    "401":{
+                        "decription": "Bad token",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "/child/applyForPickUp":{
+            "post":{
+                "tags":["Child"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    },
+                    {
+                        "name":"phone",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"User's phone"
+                    },
+                    {
+                        "name":"child_uuid",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Child's uuid"
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description": "OK",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "401":{
+                        "decription": "Bad token",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "/child/arrive":{
+            "post":{
+                "tags":["Child"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by teacher's apiKey"
+                    },
+                    {
+                        "name":"phone",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"User's phone"
+                    },
+                    {
+                        "name":"child_uuid",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Child's uuid"
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description": "OK",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "401":{
+                        "decription": "Bad token",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "/child/allPickupChildren":{
+            "get":{
+                "tags":["Child"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    },
+                    {
+                        "name":"phone",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"user's phone"
+                    },
+                    {
+                        "name":"days",
+                        "type":"array",
+                        "items":{
+                            "type":"boolean"
+                        },
+                        "in":"Authorization",
+                        "description":"Array map '0~6' to 'Sunday ~ Saturday'"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type":"object",
+                            "properties":{
+                                "pickup":{
+                                    "type":"array",
+                                    "items":{
+                                        "type":"object",
+                                        "properties":{
+                                            "uuid": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "/child/children":{
+            "get":{
+                "tags":["Child"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    },
+                    {
+                        "name":"phone",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"user's phone"
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description": "OK",
+                        "schema":{
+                            "$ref": "#/definitions/Children"
+                        }
+                    },
+                    "401":{
+                        "decription": "Bad token",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "child/pickupDay":{
+            "post":{
+                "tags":["Child"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    },
+                    {
+                        "name":"phone",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Teacher's phone"
+                    },
+                    {
+                        "name":"list",
+                        "type":"array",
+                        "items":{
+                            "type":"object",
+                            "properties":{
+                                "uuid":{
+                                    "type":"string"
+                                },
+                                "days":{
+                                    "type":"array",
+                                    "items":{
+                                        "type":"boolean"
+                                    }
+                                }
+                            }
+                        },
+                        "in":"Authorization",
+                        "description":"Array of child's uuid and pickup days"
+                    }
+                ]
+            }
+        },
+        "/teacher/add":{
+            "post":{
+                "tags":["Teacher"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    },
+                    {
+                        "name":"phone",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Teacher's phone"
+                    },
+                    {
+                        "name":"password",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Teacher's password"
+                    },
+                    {
+                        "name":"name",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Teacher's name"
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description": "OK",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "401":{
+                        "decription": "Bad token",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "/teacher/allTeacher":{
+            "get":{
+                "tags":["Teacher"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    },
+                    {
+                        "name":"phone",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"user's phone"
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description": "OK",
+                        "schema":{
+                            "$ref": "#/definitions/Teacher"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "/teacher/pickupList":{
+            "get":{
+                "tags":["Teacher"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    },
+                    {
+                        "name":"phone",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Driver's phone"
+                    }
+                ]
+            }
+        },
+        "/driver/add":{
+            "post":{
+                "tags":["Driver"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    },
+                    {
+                        "name":"phone",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Driver's phone"
+                    },
+                    {
+                        "name":"password",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Driver's password"
+                    },
+                    {
+                        "name":"name",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Driver's name"
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description": "OK",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "401":{
+                        "decription": "Bad token",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "/driver/allDriver":{
+            "get":{
+                "tags":["Driver"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    },
+                    {
+                        "name":"phone",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"user's phone"
+                    }
+                ],
+                "responses": {
+                    "200":{
+                        "description": "OK",
+                        "schema":{
+                            "$ref": "#/definitions/Driver"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "/driver/location":{
+            "put":{
+                "tags":["Driver"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    },
+                    {
+                        "name":"phone",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"User's phone"
+                    },
+                    {
+                        "name":"location",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"Driver's location format: '<lat>,<lng>', example: '24.990750,121.294920' "
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description": "OK",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "401":{
+                        "decription": "Bad token",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "/direction/generatePickupList":{
+            "post":{
+                "tags":["Direction"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    },
+                    {
+                        "name":"phone",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"User's phone"
+                    },
+                    {
+                        "name":"driver",
+                        "type":"object",
+                        "properties":{
+                            "phone":{
+                                "type":"string"
+                            }
+                        },
+                        "in":"Authorization",
+                        "description":"Driver's phone"
+                    },
+                    {
+                        "name":"teacher",
+                        "type":"object",
+                        "properties":{
+                            "phone":{
+                                "type":"string"
+                            }
+                        },
+                        "in":"Authorization",
+                        "description":"Teacher's phone"    
+                    },
+                    {
+                        "name":"child_uuid_list",
+                        "type":"array",
+                        "items":{
+                            "type":"string"
+                        },
+                        "in":"Authorization",
+                        "description":"Child's uuid"
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description": "OK",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "401":{
+                        "decription": "Bad token",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "/direction/generateDirection":{
+            "post":{
+                "tags":["Direction"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    },
+                    {
+                        "name":"phone",
+                        "type":"string",
+                        "in":"Authorization",
+                        "description":"User's phone"
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description": "OK, and return json data of google directionResponse"
+                    },
+                    "401":{
+                        "decription": "Bad token",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions":{
+        "Children":{
+            "type": "array",
+            "items":{
+                "type": "object",
+                "properties": {
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "pickup":{
+                        "type":"string"
+                    }
+                }
+            }
+        },
+        "Teacher":{
+            "type": "array",
+            "items":{
+                "type": "object",
+                "properties":{
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "phone":{
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "Driver":{
+            "type": "array",
+            "items":{
+                "type": "object",
+                "properties":{
+                    "uuid": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "phone":{
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "message":{
+            "type":"object",
+            "properties":{
+                "type":{
+                    "type": "string"
+                },
+                "message":{
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

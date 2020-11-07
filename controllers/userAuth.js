@@ -20,7 +20,7 @@ module.exports = {
                 return build_apiKey_token({phone, publicKey}, (err, done, info)=>{
                     if(err) return callback(err)
                     if(!done) return callback(null, false, info)
-                    info.user_role = role;
+                    info.body.user_role = role;
                     return callback(null, true, info)
                 });
         })

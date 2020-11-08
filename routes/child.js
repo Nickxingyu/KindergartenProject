@@ -190,8 +190,7 @@ router.post('/arrive', (req, res, next) => {
                                         const index = waypoint_order.indexOf(number)
                                         const length = waypoint_order.length;
                                         waypoint_order = waypoint_order.slice(0,index).concat(waypoint_order.slice(index+1, length))
-                                        place_ids = place_ids.slice(0,index) +
-                                                    place_ids.slice(index + 1, length)
+                                        place_ids = place_ids.slice(0,index).concat(place_ids.slice(index + 1, length))
                                         Direction.findOneAndUpdate({
                                             pickupList: pickupList_uuid
                                         },{

@@ -70,7 +70,7 @@ module.exports = {
                     user_info.teacher = teacher;
                     user_info.driver = driver;
                 }
-                user_info.password = null
+                user_info.user.password = null
                 return verification_service.check_verification_code_for_JWT(phone, token,(err, result, info)=>{
                     if(err) return callback(err)
                     if(!result) return callback(null, false, info)

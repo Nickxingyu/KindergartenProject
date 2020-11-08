@@ -60,9 +60,20 @@ router.post('/generateDirection', async(req, res, next) => {
             res.status(status).json(error)
         }
         if(!direction){
+            let child_uuid_array = []
             const address_list = chosen_pickupList.child_list.map(child => {
+                child_uuid_array.push(child.uuid)
                 return child.address
             })
+            try{
+                await User.updateMany(
+                    {'user.uuid':{'$in':child_uuid_array}},
+                    {'user.pickupList':chosen_pickupList_uuid}
+                )
+            }catch(e){
+                const {status, error} = database_fail(e)
+                res.status(status).json(error)
+            }
             generateDirection(address_list, (err, direction)=>{
                 if(err) res.status(500).json(err)
                 else{

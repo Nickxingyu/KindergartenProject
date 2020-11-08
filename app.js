@@ -18,14 +18,13 @@ const { JwtToBody } = require("./middlewares/validations/authorization/accessVal
 var app = express();
 var port = config.server.port;
 
-
+app.use(cors())
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: false
 }));
 app.use(helmet());
 app.use(logger(':date - :method :url HTTP/:http-version :status - :response-time ms'));
-app.use(JwtToBody)
 app.use('/users',users);
 app.use('/child',child);
 app.use('/pickupList', pickupList);
@@ -40,3 +39,14 @@ require("./models/database/mongo/connect")(mongoose, ()=>{
         console.log("http://localhost:".concat(port));
     });
 })
+
+function cors() {
+    return function cors(req, res, next) {
+        if (!res.headersSent) {
+            res.header("Access-Control-Allow-Origin", "*");
+            res.header("Access-Control-Expose-Headers", "Authorization");
+            res.header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, apikey, authorization, reqid, reqtime, line-id");
+        }
+        return next();
+    };
+}

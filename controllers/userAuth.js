@@ -24,14 +24,14 @@ module.exports = {
         })
     },
     login_by_verification_code: (userInfo, callback) => {
-        const {phone, token} = userInfo;
+        const {phone, code} = userInfo;
         if(!phone) return callback(null, false, login_message.content_not_complete())
         User.findOne({"user.phone": phone}, async(err,user)=>{
             if (err)
                 return callback(err);
             if (!user)
                 return callback(null, false, login_message.no_user_founded());
-            if (!token) 
+            if (!code) 
                 return verification_service.send_verifiaction_code(phone, callback);
             else{
                 let user_info = {}
@@ -71,11 +71,10 @@ module.exports = {
                     user_info.driver = driver;
                 }
                 user_info.user.password = null
-                return verification_service.check_verification_code_for_JWT(phone, token,(err, result, info)=>{
+                return verification_service.check_verification_code(phone, code,(err, result, info)=>{
                     if(err) return callback(err)
                     if(!result) return callback(null, false, info)
-                    const {publicKey} = info.decode;
-                    return build_apiKey_token({phone, publicKey, user_info},(err, done, info)=>{
+                    return build_apiKey_token({phone, user_info},(err, done, info)=>{
                         if(err) return callback(err)
                         if(!done) return callback(null, false, info)
                         return callback(null, true, info)

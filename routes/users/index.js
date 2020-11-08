@@ -24,11 +24,9 @@ router.post("/loginByPassword",(req, res, next)=>{
 })
 
 router.post("/loginByVerificationCode",(req, res, next)=>{
-    const {phone} = req.body;
-    const authorization = req.header('Authorization');
-    const token = authorization ? authorization.replace('Bearer ', '') : null;
+    const {phone, code} = req.body;
     userAuth.login_by_verification_code(
-        { phone, token},
+        { phone, code },
         (err, result, info)=>{
             if(err) next(err);
             else if(!result) res.status(401).json(info);

@@ -42,7 +42,7 @@ module.exports = {
         return is_verification_code_expired(phone, (err, isExpired, info, verification_code)=>{
             if(err) return callback(err)
             if(isExpired) return callback(null, false, info)
-            if(!verification_code.localeCompare(user_verification_code))
+            if(!verification_code === user_verification_code)
                 return callback(null, false, login_message.invalid_verification_code())
             return del_verification_code(phone, callback)
         })

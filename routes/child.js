@@ -7,79 +7,79 @@ const User = require('../models/database/mongo/DataBase/user');
 const Direction = require('../models/database/mongo/DataBase/direction');
 const {getPickupStatus, getPickupDay, modifyPickupDays} = require('../controllers/children');
 
-router.post('/addParent',async(req, res, next)=>{
-    let {phone, password, name} = req.body
-    if(!password) res.status(401).json(api_message.content_not_complete())
-    else{
-        let user
-        try{
-            user = await User.findOne({'user.phone':phone})
-        }catch(e){
-            const {status, error} = database_fail(e)
-            res.status(status).json(error)
-        }
-        if(!user){
-            const uuid = uuidv4();
-            password = User.generateHash(password)
-            User.insertMany([
-                {
-                    user:{
-                        uuid,
-                        phone,
-                        password,
-                        name,
-                        roles: ['parent']
-                    }
-                }
-            ],(err, result)=>{
-                if(err) res.status(500).json(database_message.database_fail())
-                else res.json(message.succeed())
-            })
-        }else{
-            user.user.roles.push('parent')
-            try{
-                await user.save()
-            }catch(e){
-                const {status, error} = database_fail(e)
-                res.status(status).json(error)
-            }
-            res.json(message.succeed())
-        }
-    }
-})
+// router.post('/addParent',async(req, res, next)=>{
+//     let {phone, password, name} = req.body
+//     if(!password) res.status(401).json(api_message.content_not_complete())
+//     else{
+//         let user
+//         try{
+//             user = await User.findOne({'user.phone':phone})
+//         }catch(e){
+//             const {status, error} = database_fail(e)
+//             res.status(status).json(error)
+//         }
+//         if(!user){
+//             const uuid = uuidv4();
+//             password = User.generateHash(password)
+//             User.insertMany([
+//                 {
+//                     user:{
+//                         uuid,
+//                         phone,
+//                         password,
+//                         name,
+//                         roles: ['parent']
+//                     }
+//                 }
+//             ],(err, result)=>{
+//                 if(err) res.status(500).json(database_message.database_fail())
+//                 else res.json(message.succeed())
+//             })
+//         }else{
+//             user.user.roles.push('parent')
+//             try{
+//                 await user.save()
+//             }catch(e){
+//                 const {status, error} = database_fail(e)
+//                 res.status(status).json(error)
+//             }
+//             res.json(message.succeed())
+//         }
+//     }
+// })
 
-router.post('/add',(req,res,next)=>{
-    const uuid = uuidv4()
-    let {phone, name, address, class_number} = req.body;
-    let pickupDay = req.body.pickupDay || []
-    User.findOne({'user.phone':phone, 'user.roles':'parent'},(err, user)=>{
-        if(err) res.status(500).json(database_message.database_fail())
-        else if(!user) res.json(database_message.no_user_founded())
-        else{
-            user.user.children.push(uuid)
-            user.save((err, result)=>{
-                if(err) res.status(500).json(database_message.database_fail())
-                else{
-                    User.insertMany([
-                        {
-                            user:{
-                                uuid,
-                                name,
-                                role: 'child',
-                                address,
-                                class_number,
-                                pickupDay
-                            }
-                        }
-                    ],(err, result)=>{
-                        if(err) res.status(500).json(database_message.database_fail())
-                        else res.json(message.succeed())
-                    })
-                } 
-            })
-        }
-    })
-})
+// router.post('/add',(req,res,next)=>{
+//     const uuid = uuidv4()
+//     let {phone, name, address, class_number} = req.body;
+//     let pickupDay = req.body.pickupDay || []
+//     User.findOne({'user.phone':phone, 'user.roles':'parent'},(err, user)=>{
+//         if(err) res.status(500).json(database_message.database_fail())
+//         else if(!user) res.json(database_message.no_user_founded())
+//         else{
+//             user.user.children.push(uuid)
+//             user.save((err, result)=>{
+//                 if(err) res.status(500).json(database_message.database_fail())
+//                 else{
+//                     User.insertMany([
+//                         {
+//                             user:{
+//                                 uuid,
+//                                 name,
+//                                 roles: ['child'],
+//                                 address,
+//                                 class_number,
+//                                 pickupDay
+//                             }
+//                         }
+//                     ],(err, result)=>{
+//                         if(err) res.status(500).json(database_message.database_fail())
+//                         else res.json(message.succeed())
+//                     })
+//                 } 
+//             })
+//         }
+//     })
+// })
 
 router.get('/allChildren',(req, res, next)=>{
     User.find({'user.roles':'child'},(err, users)=>{
@@ -185,11 +185,11 @@ router.post('/arrive', (req, res, next) => {
                                         })
                                     }else{
                                         let waypoint_order = direction.waypoint_order.slice();
+                                        console.log(waypoint_order)
                                         let place_ids = direction.place_ids.slice();
                                         const index = waypoint_order.indexOf(number)
                                         const length = waypoint_order.length;
-                                        waypoint_order = waypoint_order.slice(0,index) +
-                                                        waypoint_order.slice(index+1, length)
+                                        waypoint_order = waypoint_order.slice(0,index).concat(waypoint_order.slice(index+1, length))
                                         place_ids = place_ids.slice(0,index) +
                                                     place_ids.slice(index + 1, length)
                                         Direction.findOneAndUpdate({

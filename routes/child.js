@@ -7,28 +7,44 @@ const User = require('../models/database/mongo/DataBase/user');
 const Direction = require('../models/database/mongo/DataBase/direction');
 const {getPickupStatus, getPickupDay, modifyPickupDays} = require('../controllers/children');
 
-router.post('/addParent',(req,res,next)=>{
-    const uuid = uuidv4()
-    let {phone, password, name, address} = req.body
+router.post('/addParent',async(req, res, next)=>{
+    let {phone, password, name} = req.body
     if(!password) res.status(401).json(api_message.content_not_complete())
     else{
-        password = User.generateHash(password)
-        User.insertMany([
-            {
-                user:{
-                    uuid,
-                    phone,
-                    password,
-                    name,
-                    role: 'parent',
-                    address,
-                    children:[]
+        let user
+        try{
+            user = await User.findOne({'user.phone':phone})
+        }catch(e){
+            const {status, error} = database_fail(e)
+            res.status(status).json(error)
+        }
+        if(!user){
+            const uuid = uuidv4();
+            password = User.generateHash(password)
+            User.insertMany([
+                {
+                    user:{
+                        uuid,
+                        phone,
+                        password,
+                        name,
+                        roles: ['parent']
+                    }
                 }
+            ],(err, result)=>{
+                if(err) res.status(500).json(database_message.database_fail())
+                else res.json(message.succeed())
+            })
+        }else{
+            user.user.roles.push('parent')
+            try{
+                await user.save()
+            }catch(e){
+                const {status, error} = database_fail(e)
+                res.status(status).json(error)
             }
-        ],(err, result)=>{
-            if(err) res.status(500).json(database_message.database_fail())
-            else res.json(message.succeed())
-        })
+            res.json(message.succeed())
+        }
     }
 })
 
@@ -36,7 +52,7 @@ router.post('/add',(req,res,next)=>{
     const uuid = uuidv4()
     let {phone, name, address, class_number} = req.body;
     let pickupDay = req.body.pickupDay || []
-    User.findOne({'user.phone':phone, 'user.role':'parent'},(err, user)=>{
+    User.findOne({'user.phone':phone, 'user.roles':'parent'},(err, user)=>{
         if(err) res.status(500).json(database_message.database_fail())
         else if(!user) res.json(database_message.no_user_founded())
         else{
@@ -66,7 +82,7 @@ router.post('/add',(req,res,next)=>{
 })
 
 router.get('/allChildren',(req, res, next)=>{
-    User.find({'user.role':'child'},(err, users)=>{
+    User.find({'user.roles':'child'},(err, users)=>{
         if(err) res.status(500).json(database_message.database_fail())
         else{
             const children = users.map(user=>{
@@ -96,7 +112,7 @@ router.post('/location', async(req, res, next) => {
     const {phone} = req.body;
     User.findOne({
         'user.phone':phone,
-        'user.role':'parent'
+        'user.roles':'parent'
     },(err, user)=>{
         if(err) res.status(500).json(database_message.database_fail())
         else if(!user) res.status(401).json(database_message.no_user_founded())
@@ -104,7 +120,7 @@ router.post('/location', async(req, res, next) => {
             const {children} = user.user;
             User.find({
                 'user.uuid': {'$in':children},
-                'user.role': 'child'
+                'user.roles': 'child'
             },async(err, children)=>{
                 if(err) res.status(500).json(database_message.database_fail())
                 else{
@@ -125,7 +141,7 @@ router.post('/arrive', (req, res, next) => {
     const {phone, child_uuid} = req.body;
     User.findOne({
         'user.uuid': child_uuid,
-        'user.role': 'child'
+        'user.roles': 'child'
     },(err, user)=>{
         if(err) res.status(500).json(database_message.database_fail())
         else if(!user) res.status(500).json(database_message.no_user_founded())

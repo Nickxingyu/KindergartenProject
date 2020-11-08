@@ -7,32 +7,50 @@ const {computeRemainingTime, getDirection} = require('../helpers/GCP/map');
 const { database_message, message, api_message } = require('../models/enum/msg_enum');
 const {v4:uuidv4} = require('uuid');
 
-router.post('/add',(req, res, next)=>{
-    const uuid = uuidv4()
+router.post('/add',async(req, res, next)=>{
     let {phone, password, name} = req.body
     if(!password) res.status(401).json(api_message.content_not_complete())
     else{
-        password = User.generateHash(password)
-        User.insertMany([
-            {
-                user:{
-                    uuid,
-                    phone,
-                    password,
-                    name,
-                    role:'driver'
+        let user
+        try{
+            user = await User.findOne({'user.phone':phone})
+        }catch(e){
+            const {status, error} = database_fail(e)
+            res.status(status).json(error)
+        }
+        if(!user){
+            const uuid = uuidv4();
+            password = User.generateHash(password)
+            User.insertMany([
+                {
+                    user:{
+                        uuid,
+                        phone,
+                        password,
+                        name,
+                        roles: ['driver']
+                    }
                 }
+            ],(err, result)=>{
+                if(err) res.status(500).json(database_message.database_fail())
+                else res.json(message.succeed())
+            })
+        }else{
+            user.user.roles.push('driver')
+            try{
+                await user.save()
+            }catch(e){
+                const {status, error} = database_fail(e)
+                res.status(status).json(error)
             }
-        ],(err, result)=>{
-            if(err) res.status(500).json(database_message.database_fail())
-            else res.json(message.succeed())
-        })
+            res.json(message.succeed())
+        }
     }
 })
 
 router.get('/allDriver',(req, res, next)=>{
     User.find({
-        'user.role':'driver'
+        'user.roles':'driver'
     },(err, users)=>{
         if(err) res.status(500).json(database_message.database_fail())
         else{

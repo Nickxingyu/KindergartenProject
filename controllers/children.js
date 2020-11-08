@@ -12,7 +12,7 @@ async function getPickupDay(){
     let no_pickup = []
     let children = []
     try{
-        children = await User.find({'user.role':'child'});
+        children = await User.find({'user.roles':'child'});
     }catch(e){
         console.log("Database fail!! \n")
         console.log(e)

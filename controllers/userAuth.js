@@ -9,7 +9,6 @@ module.exports = {
         const {phone, password, publicKey} = userInfo;
         if (!phone || !password || !publicKey) return callback(null, false, login_message.content_not_complete())
         User.findOne({"user.phone": phone}, (err,user)=>{
-            var role = user.user.role;
             if (err)
                 return callback(err);
             if (!user)
@@ -20,7 +19,6 @@ module.exports = {
                 return build_apiKey_token({phone, publicKey}, (err, done, info)=>{
                     if(err) return callback(err)
                     if(!done) return callback(null, false, info)
-                    info.body.user_role = role;
                     return callback(null, true, info)
                 });
         })
@@ -28,26 +26,62 @@ module.exports = {
     login_by_verification_code: (userInfo, callback) => {
         const {phone, token} = userInfo;
         if(!phone) return callback(null, false, login_message.content_not_complete())
-        User.findOne({"user.phone": phone}, (err,user)=>{
-            var role = user.user.role;
+        User.findOne({"user.phone": phone}, async(err,user)=>{
             if (err)
                 return callback(err);
             if (!user)
                 return callback(null, false, login_message.no_user_founded());
             if (!token) 
                 return verification_service.send_verifiaction_code(phone, callback);
-            else
+            else{
+                let user_info = {}
+                user_info.user = user.user
+                if(user.user.roles.includes('principal')){
+                    let users
+                    let teacher = []
+                    let driver = []
+                    try{
+                        users = await User.find({
+                            '$or':[
+                                {'user.roles':'teacher'},
+                                {'user.roles':'driver'}
+                            ]
+                        })
+                    }catch(e){
+                        return callback(e)
+                    }
+                    users.forEach(user=>{
+                        const {uuid, name, phone, roles} = user.user
+                        if(roles.includes('teacher')){
+                            teacher.push({
+                                uuid,
+                                name,
+                                phone
+                            })
+                        }
+                        if(roles.includes('driver')){
+                            driver.push({
+                                uuid,
+                                name,
+                                phone
+                            })
+                        }
+                    })
+                    user_info.teacher = teacher;
+                    user_info.driver = driver;
+                }
+                user_info.password = null
                 return verification_service.check_verification_code_for_JWT(phone, token,(err, result, info)=>{
                     if(err) return callback(err)
                     if(!result) return callback(null, false, info)
                     const {publicKey} = info.decode;
-                    return build_apiKey_token({phone, publicKey},(err, done, info)=>{
+                    return build_apiKey_token({phone, publicKey, user_info},(err, done, info)=>{
                         if(err) return callback(err)
                         if(!done) return callback(null, false, info)
-                        info.user_role = role
                         return callback(null, true, info)
                     })
                 });
+            }
         })
     },
     modify_password: (userInfo, callback) => {

@@ -105,7 +105,7 @@ router.get('/', async(req, res, next)=>{
         })
     })
     try{
-        no_pickup = await User.find({'user.uuid':{'$nin':pickup_children},'user.role':'child'})
+        no_pickup = await User.find({'user.uuid':{'$nin':pickup_children},'user.roles':'child'})
     }catch(e){
         const {status, error} = database_fail(e)
         res.status(status).json(error)

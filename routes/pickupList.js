@@ -27,76 +27,88 @@ router.post('/generateDirection', async(req, res, next) => {
     let number
     let direction
     try{
-        pickupLists = await PickupList.find({
+        chosen_pickupList = await PickupList.findOne({
             'driver.phone': phone,
-            status:{'$in':['on_the_way','wait_for_direction']}
+            status:{'$in':['on_the_way']}
         })
     }catch(e){
         let {status, error} = database_fail(e)
         res.status(status).json(error)
     }
-    if(pickupLists.length==0){
-        res.json([])
-    }else{
-        pickupLists.forEach(pickupList=>{
-            if(pickupList.status == 'on_the_way'){
-                chosen_pickupList = pickupList
-            }else if(!number || (number > pickupList.number)){
-                chosen_pickupList = pickupList
-            }
-        })
-        const chosen_pickupList_uuid = chosen_pickupList.uuid;
-        chosen_pickupList.status = 'on_the_way'
+    if(!chosen_pickupList){
         try{
-            await chosen_pickupList.save()
-        }catch(e){
-            let {status, error} = database_fail(e)
-            res.status(status).json(error)
-        }
-        try{
-            direction = await Direction.findOne({pickupList:chosen_pickupList_uuid})
-        }catch(e){
-            let {status, error} = database_fail(e)
-            res.status(status).json(error)
-        }
-        if(!direction){
-            let child_uuid_array = []
-            const address_list = chosen_pickupList.child_list.map(child => {
-                child_uuid_array.push(child.uuid)
-                return child.address
+            pickupLists = await PickupList.find({
+                'driver.phone': phone,
+                status:{'$in':['wait_for_direction']}
             })
-            try{
-                await User.updateMany(
-                    {'user.uuid':{'$in':child_uuid_array}},
-                    {'user.pickupList':chosen_pickupList_uuid}
-                )
-            }catch(e){
-                const {status, error} = database_fail(e)
-                res.status(status).json(error)
-            }
-            generateDirection(address_list, (err, direction)=>{
-                if(err) res.status(500).json(err)
-                else{
-                    const place_ids = 
-                        direction.geocoded_waypoints
-                        .slice(1,direction.geocoded_waypoints.length-1)
-                        .map(place=>place.place_id)
-                    Direction.insertMany({
-                        pickupList: chosen_pickupList_uuid,
-                        waypoint_order: direction.routes[0].waypoint_order,
-                        place_ids
-                    },(err)=>{
-                        if(err) res.status(500).json(err)
-                        else res.json(direction)
-                    })
+        }catch(e){
+            let {status, error} = database_fail(e)
+            res.status(status).json(error)
+        }
+        if(pickupLists.length==0){
+            res.json([])
+        }else{
+            pickupLists.forEach(pickupList=>{
+                if(!number || (number > pickupList.number)){
+                    chosen_pickupList = pickupList
                 }
             })
-        }else{
-            getDirection(location, direction, (err, direction)=>{
-                if(err) res.status(500).json(err)
-                else res.json(direction)
-            })
+            const chosen_pickupList_uuid = chosen_pickupList.uuid;
+            chosen_pickupList.status = 'on_the_way'
+            try{
+                await chosen_pickupList.save()
+            }catch(e){
+                let {status, error} = database_fail(e)
+                res.status(status).json(error)
+            }
         }
+    }
+    const chosen_pickupList_uuid = chosen_pickupList.uuid
+    console.log(chosen_pickupList_uuid)
+    try{
+        direction = await Direction.findOne({pickupList:chosen_pickupList_uuid})
+    }catch(e){
+        let {status, error} = database_fail(e)
+        res.status(status).json(error)
+    }
+    console.log(direction)
+    if(!direction){
+        let child_uuid_array = []
+        const address_list = chosen_pickupList.child_list.map(child => {
+            child_uuid_array.push(child.uuid)
+            return child.address
+        })
+        try{
+            await User.updateMany(
+                {'user.uuid':{'$in':child_uuid_array}},
+                {'user.pickupList':chosen_pickupList_uuid}
+            )
+        }catch(e){
+            const {status, error} = database_fail(e)
+            res.status(status).json(error)
+        }
+        generateDirection(address_list, (err, direction)=>{
+            if(err) res.status(500).json(err)
+            else{
+                const place_ids = 
+                    direction.geocoded_waypoints
+                    .slice(1,direction.geocoded_waypoints.length-1)
+                    .map(place=>place.place_id)
+                Direction.insertMany({
+                    pickupList: chosen_pickupList_uuid,
+                    waypoint_order: direction.routes[0].waypoint_order,
+                    place_ids
+                },(err)=>{
+                    if(err) res.status(500).json(err)
+                    else res.json(direction)
+                })
+            }
+        })
+    }else{
+        getDirection(location, direction, (err, direction)=>{
+            if(err) res.status(500).json(err)
+            else res.json(direction)
+        })
     }
 })
 

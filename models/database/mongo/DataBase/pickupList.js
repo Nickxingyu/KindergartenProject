@@ -4,7 +4,9 @@ var child_info = mongoose.Schema({
     uuid: String,
     remaining_time: String,
     address: String,
-    status: String
+    status: String,
+    name:String,
+    class_number:String
 })
 
 var schema = mongoose.Schema({

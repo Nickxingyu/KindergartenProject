@@ -22,12 +22,14 @@ async function generatePickupList(pickup_lists){
         pickup_list.status = 'wait_for_direction';
         pickup_list.number = i;
         child_list = child_list.map(child=>{
-            const {uuid, address} = child;
+            const {uuid, address, name, class_number} = child;
             return{
                 uuid,
                 address,
                 remaining_time:"",
-                status:"wait"
+                status:"wait",
+                name,
+                class_number
             }
         })
         pickup_list.child_list = child_list;

@@ -15,6 +15,8 @@ module.exports = {
             PhoneNumber : phone,
             Message : msg
         };
+    
         sns.publish(params,callback)
+        
     }
 }

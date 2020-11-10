@@ -108,7 +108,7 @@ router.get('/allPickupChildren',async(req, res, next)=>{
     else res.json(pickupDay);
 })
 
-router.post('/location', async(req, res, next) => {
+router.get('/location', async(req, res, next) => {
     const {phone} = req.body;
     User.findOne({
         'user.phone':phone,

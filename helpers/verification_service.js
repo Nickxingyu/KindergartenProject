@@ -14,7 +14,8 @@ module.exports = {
             set_verification_code(phone, code, (err, done, info)=>{
                 if(err) return callback(err)
                 if(!done) return callback(null, false, info)
-                sms_now(phone, verification_code_msg + code,(err)=>{
+                sms_now(phone, verification_code_msg + code,(err, message)=>{
+                    console.log(message)
                     if(err) return callback(null, false, err)
                     return callback(null, true, verification_code_message.code_is_sended())
                 })
@@ -42,7 +43,7 @@ module.exports = {
         return is_verification_code_expired(phone, (err, isExpired, info, verification_code)=>{
             if(err) return callback(err)
             if(isExpired) return callback(null, false, info)
-            if(!verification_code === user_verification_code)
+            if(!(verification_code === user_verification_code))
                 return callback(null, false, login_message.invalid_verification_code())
             return del_verification_code(phone, callback)
         })

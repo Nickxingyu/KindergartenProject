@@ -45,7 +45,7 @@ function cors() {
         if (!res.headersSent) {
             res.header("Access-Control-Allow-Origin", "*");
             res.header("Access-Control-Expose-Headers", "Authorization");
-            res.header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, apikey, authorization, reqid, reqtime, line-id");
+            res.header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, apikey, Authorization, reqid, reqtime, line-id");
         }
         return next();
     };

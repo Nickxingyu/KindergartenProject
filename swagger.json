@@ -430,22 +430,19 @@
                                     "items":{
                                         "type":"array",
                                         "items":{
-                                            "type":"array",
-                                            "items":{
-                                                "type":"object",
-                                                "properties":{
-                                                    "uuid":{
-                                                        "type":"string"
-                                                    },
-                                                    "name":{
-                                                        "type":"string"
-                                                    },
-                                                    "address":{
-                                                        "type":"string"
-                                                    },
-                                                    "class_number":{
-                                                        "type":"string"
-                                                    }
+                                            "type":"object",
+                                            "properties":{
+                                                "uuid":{
+                                                    "type":"string"
+                                                },
+                                                "name":{
+                                                    "type":"string"
+                                                },
+                                                "address":{
+                                                    "type":"string"
+                                                },
+                                                "class_number":{
+                                                    "type":"string"
                                                 }
                                             }
                                         }

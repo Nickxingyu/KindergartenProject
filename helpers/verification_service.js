@@ -65,7 +65,7 @@ function is_verification_code_expired(phone, callback) {
 
 function set_verification_code(phone, code, callback) {
     const expired_time = new Date();
-    expired_time.setSeconds(expired_time.getSeconds() + 60 * 3000);
+    expired_time.setSeconds(expired_time.getSeconds() + 60 * 3);
     redis.hmset(phone,['verification_code', code, 'code_expired_time', expired_time],(err,OK) => {
         if(err) return callback(err)
         return callback(null, true)

@@ -26,14 +26,15 @@ async function getPickupDay(){
         }
     }
     children.forEach(child=>{
-        const {pickupDay, uuid, name, class_number, address} = child.user
-        const car_number = child.user.car_number || 1;
+        const {pickupDay, uuid, name, class_number, address, phone} = child.user
+        const car_number = child.user.car_number || 0;
         for(let i = 0; i < 7; i++){
             if(pickupDay[i]){
                 let car_array = pickup[i] || []
                 let list =  car_array[car_number] || []
                 list.push({
                     uuid,
+                    phone,
                     name,
                     class_number,
                     address
@@ -44,6 +45,7 @@ async function getPickupDay(){
                 let list = no_pickup[i] || []
                 list.push({
                     uuid,
+                    phone,
                     name,
                     class_number,
                     address
@@ -52,6 +54,10 @@ async function getPickupDay(){
             }
         }
     })
+    for(let i = 0; i < 7; i++){
+        if(!pickup[i]) pickup[i] = []
+        if(!no_pickup[i]) no_pickup[i]= []
+    }
     return {
         pickup,
         no_pickup

@@ -497,9 +497,9 @@
                 }
             }
         },
-        "/child/modifyPickupDays":{
+        "/child/modifyPickupRule":{
             "put":{
-                "description":"改變學生例行性接送的時間",
+                "description":"改變學生例行性接送的時間和娃娃車班次",
                 "tags":["Child"],
                 "parameters":[
                     {
@@ -515,7 +515,7 @@
                             "phone":{
                                 "type":"string"
                             },
-                            "pickupDays_list":{
+                            "pickupRule_list":{
                                 "type":"array",
                                 "items":{
                                     "type": "object",

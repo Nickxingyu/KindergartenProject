@@ -211,6 +211,15 @@
                             },
                             "class_number":{
                                 "type":"string"
+                            },
+                            "car_number":{
+                                "type":"string"
+                            },
+                            "pickupDays":{
+                                "type":"array",
+                                "items":{
+                                    "type":"boolean"
+                                }
                             }
                         },
                         "in":"body"
@@ -519,6 +528,9 @@
                                             "items":{
                                                 "type":"boolean"
                                             }
+                                        },
+                                        "car_number":{
+                                            "type":"string"
                                         }
                                     }
                                 }

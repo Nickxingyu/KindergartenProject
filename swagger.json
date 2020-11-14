@@ -1,7 +1,7 @@
 {
     "swagger":"2.0",
+    "schemes":"http",
     "info":{
-        "description":"This is a test server",
         "version":"1.0.0",
         "title":"KindergartenChiu"
     },
@@ -23,8 +23,8 @@
             "description":"Operations about driver"
         },
         {
-            "name":"Direction",
-            "description":"Operations about direction"
+            "name":"PickupList",
+            "description":"Operations about pickup list"
         }
     ],
     "consumes": [
@@ -51,13 +51,9 @@
                                 },
                                 "password":{
                                     "type":"string"
-                                },
-                                "publicKey":{
-                                    "type":"string"
                                 }
                             }
-                        },
-                        "description":"Public key is used to encrypt return apiKey."
+                        }
                     }
                 ],
                 "responses":{
@@ -68,8 +64,11 @@
                                 "schema":{
                                     "type":"string"
                                 },
-                                "description":"Jwt sign by server secret key.\n 'encrypt_apiKey' in payload is encrypted by client publicKey"
+                                "description":"Jwt sign by server apikey."
                             }
+                        },
+                        "schema":{
+                            "$ref": "#/definitions/message"
                         }
                     },
                     "401":{
@@ -89,6 +88,7 @@
         },
         "/users/loginByVerificationCode":{
             "post":{
+                "description":"透過驗證碼登入",
                 "tags":["User"],
                 "parameters":[
                     {
@@ -101,27 +101,12 @@
                             "properties":{
                                 "phone":{
                                     "type":"string"
+                                },
+                                "code":{
+                                    "type":"string"
                                 }
                             }
                         }
-                    },
-                    {
-                        "name":"Authorization",
-                        "type":"string",
-                        "in":"header",
-                        "description":"Jwt sign by verification code"
-                    },
-                    {
-                        "name":"phone",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"If you have verification code, you should put phone in your jwt payload to verify"
-                    },
-                    {
-                        "name":"publicKey",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"If you have verification code, you should put client's publicKey in your jwt payload to verify"
                     }
                 ],
                 "responses":{
@@ -132,8 +117,11 @@
                                 "schema":{
                                     "type":"string"
                                 },
-                                "description":"Jwt sign by server secret key.\n 'encrypt_apiKey' in payload is encrypted by client publicKey"
+                                "description":"Jwt sign by apikey"
                             }
+                        },
+                        "schema":{
+                            "$ref": "#/definitions/message"
                         }
                     },
                     "401":{
@@ -159,45 +147,27 @@
                         "name":"body",
                         "type":"string",
                         "in":"body",
-                        "description":"If you don't have verification code, you shoud put phone in request body and get verification code from sns",
                         "schema":{
                             "type":"object",
                             "properties":{
                                 "phone":{
                                     "type":"string"
+                                },
+                                "code":{
+                                    "type":"string"
+                                },
+                                "password":{
+                                    "type":"string"
                                 }
                             }
                         }
-                    },
-                    {
-                        "name":"Authorization",
-                        "type":"string",
-                        "in":"header",
-                        "description":"Jwt sign by verification code"
-                    },
-                    {
-                        "name":"phone",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"If you have verification code, you should put phone in your jwt payload to verify"
-                    },
-                    {
-                        "name":"password",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"If you have verification code, you should put password in your jwt payload to verify, and the password is encrypted by server public key"
                     }
                 ],
                 "responses":{
                     "200": {
                         "description": "OK",
-                        "headers":{
-                            "Authorization":{
-                                "schema":{
-                                    "type":"string"
-                                },
-                                "description":"Jwt sign by server secret key.\n 'encrypt_apiKey' in payload is encrypted by client publicKey"
-                            }
+                        "schema":{
+                            "$ref": "#/definitions/message"
                         }
                     },
                     "401":{
@@ -218,6 +188,7 @@
         "/child/add":{
             "post":{
                 "tags":["Child"],
+                "description":"新增學生資料",
                 "parameters":[
                     {
                         "name":"Authorization",
@@ -226,34 +197,32 @@
                         "description":"Jwt sign by user's apiKey"
                     },
                     {
-                        "name":"parents_phone",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Parent's phone"
-                    },
-                    {
-                        "name":"phone",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Child's phone"
-                    },
-                    {
-                        "name":"password",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Child's password"
-                    },
-                    {
-                        "name":"name",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Child's name"
-                    },
-                    {
-                        "name":"address",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Child's address"
+                        "name":"body",
+                        "type":"object",
+                        "properties":{
+                            "phone":{
+                                "type":"string"
+                            },
+                            "name":{
+                                "type":"string"
+                            },
+                            "address":{
+                                "type":"string"
+                            },
+                            "class_number":{
+                                "type":"string"
+                            },
+                            "car_number":{
+                                "type":"string"
+                            },
+                            "pickupDays":{
+                                "type":"array",
+                                "items":{
+                                    "type":"boolean"
+                                }
+                            }
+                        },
+                        "in":"body"
                     }
                 ],
                 "responses":{
@@ -280,6 +249,7 @@
         },
         "/child/addParent":{
             "post":{
+                "description":"新增家長資料",
                 "tags":["Child"],
                 "parameters":[
                     {
@@ -287,30 +257,24 @@
                         "type":"string",
                         "in":"header",
                         "description":"Jwt sign by user's apiKey"
-                    },
-                    {
-                        "name":"phone",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Parent's phone"
-                    },
-                    {
-                        "name":"password",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Parent's password"
-                    },
-                    {
-                        "name":"name",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Parent's name"
-                    },
-                    {
-                        "name":"address",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Parent's name"
+                    },{
+                        "name":"body",
+                        "type":"object",
+                        "properties":{
+                            "phone":{
+                                "type":"string"
+                            },
+                            "password":{
+                                "type":"string"
+                            },
+                            "name":{
+                                "type":"string"
+                            },
+                            "address":{
+                                "type":"string"
+                            }
+                        },
+                        "in":"body"
                     }
                 ],
                 "responses":{
@@ -337,6 +301,7 @@
         },
         "/child/location":{
             "get":{
+                "description":"取得小孩位置及剩餘時間",
                 "tags":["Child"],
                 "parameters":[
                     {
@@ -344,18 +309,6 @@
                         "type":"string",
                         "in":"header",
                         "description":"Jwt sign by user's apiKey"
-                    },
-                    {
-                        "name":"phone",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"User's phone"
-                    },
-                    {
-                        "name":"child_uuid",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Child's uuid"
                     }
                 ],
                 "responses":{
@@ -364,22 +317,36 @@
                         "schema":{
                             "type":"object",
                             "properties":{
-                                "location":{
-                                    "type":"object",
-                                    "properties":{
-                                        "lat":{
-                                            "type":"string",
-                                            "description":"latitude"
-                                        },
-                                        "lng":{
-                                            "type":"string",
-                                            "description":"longitude"
+                                "children":{
+                                    "type":"array",
+                                    "items":{
+                                        "type":"object",
+                                        "properties":{
+                                            "uuid":{
+                                                "type":"string"
+                                            },
+                                            "name":{
+                                                "type":"string"
+                                            },
+                                            "location":{
+                                                "type":"object",
+                                                "properties":{
+                                                    "lat":{
+                                                        "type":"string",
+                                                        "description":"latitude"
+                                                    },
+                                                    "lng":{
+                                                        "type":"string",
+                                                        "description":"longitude"
+                                                    }
+                                                }
+                                            },
+                                            "remaining_time":{
+                                                "type":"string",
+                                                "description":"second"
+                                            }
                                         }
                                     }
-                                },
-                                "remaining_time":{
-                                    "type":"string",
-                                    "description":"second"
                                 }
                             }
                         }
@@ -399,53 +366,9 @@
                 }
             }
         },
-        "/child/applyForPickUp":{
-            "post":{
-                "tags":["Child"],
-                "parameters":[
-                    {
-                        "name":"Authorization",
-                        "type":"string",
-                        "in":"header",
-                        "description":"Jwt sign by user's apiKey"
-                    },
-                    {
-                        "name":"phone",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"User's phone"
-                    },
-                    {
-                        "name":"child_uuid",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Child's uuid"
-                    }
-                ],
-                "responses":{
-                    "200":{
-                        "description": "OK",
-                        "schema":{
-                            "$ref": "#/definitions/message"
-                        }
-                    },
-                    "401":{
-                        "decription": "Bad token",
-                        "schema":{
-                            "$ref": "#/definitions/message"
-                        }
-                    },
-                    "500":{
-                        "decription": "Server fail",
-                        "schema":{
-                            "$ref": "#/definitions/message"
-                        }
-                    }
-                }
-            }
-        },
         "/child/arrive":{
             "post":{
+                "description":"更新小孩狀態為已送達",
                 "tags":["Child"],
                 "parameters":[
                     {
@@ -455,16 +378,20 @@
                         "description":"Jwt sign by teacher's apiKey"
                     },
                     {
-                        "name":"phone",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"User's phone"
-                    },
-                    {
-                        "name":"child_uuid",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Child's uuid"
+                        "name":"body",
+                        "type":"object",
+                        "properties":{
+                            "phone":{
+                                "type":"string"
+                            },
+                            "child_uuid":{
+                                "type":"array",
+                                "items":{
+                                    "type":"string"
+                                }
+                            }
+                        },
+                        "in":"body"
                     }
                 ],
                 "responses":{
@@ -491,6 +418,7 @@
         },
         "/child/allPickupChildren":{
             "get":{
+                "description":"取得所有小孩資訊並依例行性接送單將小孩分為成兩組",
                 "tags":["Child"],
                 "parameters":[
                     {
@@ -498,77 +426,63 @@
                         "type":"string",
                         "in":"header",
                         "description":"Jwt sign by user's apiKey"
-                    },
-                    {
-                        "name":"phone",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"user's phone"
-                    },
-                    {
-                        "name":"days",
-                        "type":"array",
-                        "items":{
-                            "type":"boolean"
-                        },
-                        "in":"Authorization",
-                        "description":"Array map '0~6' to 'Sunday ~ Saturday'"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "OK, pickup 為長度為七（對應禮拜天到禮拜六）的陣列，其中每個元素為不限長度的陣列對應到娃娃車班次，其中每個元素為一個不限長度的陣列存放著該班次的小孩資訊\n 例如：pickup[1][0] 為星期一的第一班車中的小孩的資訊",
                         "schema": {
                             "type":"object",
                             "properties":{
                                 "pickup":{
                                     "type":"array",
                                     "items":{
-                                        "type":"object",
-                                        "properties":{
-                                            "uuid": {
-                                                "type": "string"
+                                        "type":"array",
+                                        "items":{
+                                            "type":"object",
+                                            "properties":{
+                                                "uuid":{
+                                                    "type":"string"
+                                                },
+                                                "name":{
+                                                    "type":"string"
+                                                },
+                                                "address":{
+                                                    "type":"string"
+                                                },
+                                                "class_number":{
+                                                    "type":"string"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "no_pickup":{
+                                    "type":"array",
+                                    "items":{
+                                        "type":"array",
+                                        "items":{
+                                            "type":"object",
+                                            "properties":{
+                                                "uuid":{
+                                                    "type":"string"
+                                                },
+                                                "name":{
+                                                    "type":"string"
+                                                },
+                                                "address":{
+                                                    "type":"string"
+                                                },
+                                                "class_number":{
+                                                    "type":"string"
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
                         }
-                    },
-                    "500":{
-                        "decription": "Server fail",
-                        "schema":{
-                            "$ref": "#/definitions/message"
-                        }
-                    }
-                }
-            }
-        },
-        "/child/children":{
-            "get":{
-                "tags":["Child"],
-                "parameters":[
-                    {
-                        "name":"Authorization",
-                        "type":"string",
-                        "in":"header",
-                        "description":"Jwt sign by user's apiKey"
-                    },
-                    {
-                        "name":"phone",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"user's phone"
-                    }
-                ],
-                "responses":{
-                    "200":{
-                        "description": "OK",
-                        "schema":{
-                            "$ref": "#/definitions/Children"
-                        }
-                    },
-                    "401":{
+                    },"401":{
                         "decription": "Bad token",
                         "schema":{
                             "$ref": "#/definitions/message"
@@ -583,8 +497,9 @@
                 }
             }
         },
-        "child/pickupDay":{
-            "post":{
+        "/child/modifyPickupDays":{
+            "put":{
+                "description":"改變學生例行性接送的時間",
                 "tags":["Child"],
                 "parameters":[
                     {
@@ -594,36 +509,42 @@
                         "description":"Jwt sign by user's apiKey"
                     },
                     {
-                        "name":"phone",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Teacher's phone"
-                    },
-                    {
-                        "name":"list",
-                        "type":"array",
-                        "items":{
-                            "type":"object",
-                            "properties":{
-                                "uuid":{
-                                    "type":"string"
-                                },
-                                "days":{
-                                    "type":"array",
-                                    "items":{
-                                        "type":"boolean"
+                        "name":"body",
+                        "type":"object",
+                        "properties":{
+                            "phone":{
+                                "type":"string"
+                            },
+                            "pickupDays_list":{
+                                "type":"array",
+                                "items":{
+                                    "type": "object",
+                                    "properties":{
+                                        "uuid":{
+                                            "type":"string"
+                                        },
+                                        "pickupDays":{
+                                            "type":"array",
+                                            "items":{
+                                                "type":"boolean"
+                                            }
+                                        },
+                                        "car_number":{
+                                            "type":"string"
+                                        }
                                     }
                                 }
                             }
                         },
-                        "in":"Authorization",
-                        "description":"Array of child's uuid and pickup days"
+                        "in":"body",
+                        "description":"pickupDays_list中每個元素對應到一個小孩的uuid及長度為七的Array,從星期天(0)到星期六(6)表示是否要接送"
                     }
                 ]
             }
         },
         "/teacher/add":{
             "post":{
+                "description":"新增教師",
                 "tags":["Teacher"],
                 "parameters":[
                     {
@@ -633,22 +554,20 @@
                         "description":"Jwt sign by user's apiKey"
                     },
                     {
-                        "name":"phone",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Teacher's phone"
-                    },
-                    {
-                        "name":"password",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Teacher's password"
-                    },
-                    {
-                        "name":"name",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Teacher's name"
+                        "name":"body",
+                        "type":"object",
+                        "properties":{
+                            "phone":{
+                                "type":"string"
+                            },
+                            "password":{
+                                "type":"string"
+                            },
+                            "name":{
+                                "type":"string"
+                            }
+                        },
+                        "in":"body"
                     }
                 ],
                 "responses":{
@@ -675,6 +594,7 @@
         },
         "/teacher/allTeacher":{
             "get":{
+                "description":"取得所有教師資料",
                 "tags":["Teacher"],
                 "parameters":[
                     {
@@ -682,12 +602,6 @@
                         "type":"string",
                         "in":"header",
                         "description":"Jwt sign by user's apiKey"
-                    },
-                    {
-                        "name":"phone",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"user's phone"
                     }
                 ],
                 "responses":{
@@ -706,27 +620,9 @@
                 }
             }
         },
-        "/teacher/pickupList":{
-            "get":{
-                "tags":["Teacher"],
-                "parameters":[
-                    {
-                        "name":"Authorization",
-                        "type":"string",
-                        "in":"header",
-                        "description":"Jwt sign by user's apiKey"
-                    },
-                    {
-                        "name":"phone",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Driver's phone"
-                    }
-                ]
-            }
-        },
         "/driver/add":{
             "post":{
+                "description":"新增司機",
                 "tags":["Driver"],
                 "parameters":[
                     {
@@ -736,22 +632,20 @@
                         "description":"Jwt sign by user's apiKey"
                     },
                     {
-                        "name":"phone",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Driver's phone"
-                    },
-                    {
-                        "name":"password",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Driver's password"
-                    },
-                    {
-                        "name":"name",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Driver's name"
+                        "name":"body",
+                        "type":"object",
+                        "properties":{
+                            "phone":{
+                                "type":"string"
+                            },
+                            "password":{
+                                "type":"string"
+                            },
+                            "name":{
+                                "type":"string"
+                            }
+                        },
+                        "in":"body"
                     }
                 ],
                 "responses":{
@@ -778,6 +672,7 @@
         },
         "/driver/allDriver":{
             "get":{
+                "description":"取得所有司機資料",
                 "tags":["Driver"],
                 "parameters":[
                     {
@@ -785,12 +680,6 @@
                         "type":"string",
                         "in":"header",
                         "description":"Jwt sign by user's apiKey"
-                    },
-                    {
-                        "name":"phone",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"user's phone"
                     }
                 ],
                 "responses": {
@@ -809,8 +698,43 @@
                 }
             }
         },
+        "/driver/checkListStatus":{
+            "get":{
+                "description":"取得當日行車檢查表是否已完成",
+                "tags":["Driver"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    }
+                ],
+                "responses": {
+                    "200":{
+                        "description": "OK",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "401":{
+                        "decription": "Bad token",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
         "/driver/location":{
             "put":{
+                "description":"更新司機位置及計算學生到家剩餘時間",
                 "tags":["Driver"],
                 "parameters":[
                     {
@@ -820,130 +744,320 @@
                         "description":"Jwt sign by user's apiKey"
                     },
                     {
-                        "name":"phone",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"User's phone"
-                    },
-                    {
-                        "name":"location",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"Driver's location format: '<lat>,<lng>', example: '24.990750,121.294920' "
-                    }
-                ],
-                "responses":{
-                    "200":{
-                        "description": "OK",
-                        "schema":{
-                            "$ref": "#/definitions/message"
-                        }
-                    },
-                    "401":{
-                        "decription": "Bad token",
-                        "schema":{
-                            "$ref": "#/definitions/message"
-                        }
-                    },
-                    "500":{
-                        "decription": "Server fail",
-                        "schema":{
-                            "$ref": "#/definitions/message"
-                        }
-                    }
-                }
-            }
-        },
-        "/direction/generatePickupList":{
-            "post":{
-                "tags":["Direction"],
-                "parameters":[
-                    {
-                        "name":"Authorization",
-                        "type":"string",
-                        "in":"header",
-                        "description":"Jwt sign by user's apiKey"
-                    },
-                    {
-                        "name":"phone",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"User's phone"
-                    },
-                    {
-                        "name":"driver",
+                        "name":"body",
                         "type":"object",
                         "properties":{
                             "phone":{
                                 "type":"string"
-                            }
-                        },
-                        "in":"Authorization",
-                        "description":"Driver's phone"
-                    },
-                    {
-                        "name":"teacher",
-                        "type":"object",
-                        "properties":{
-                            "phone":{
+                            },
+                            "location":{
                                 "type":"string"
                             }
                         },
-                        "in":"Authorization",
-                        "description":"Teacher's phone"    
-                    },
-                    {
-                        "name":"child_uuid_list",
-                        "type":"array",
-                        "items":{
-                            "type":"string"
-                        },
-                        "in":"Authorization",
-                        "description":"Child's uuid"
-                    }
-                ],
-                "responses":{
-                    "200":{
-                        "description": "OK",
-                        "schema":{
-                            "$ref": "#/definitions/message"
-                        }
-                    },
-                    "401":{
-                        "decription": "Bad token",
-                        "schema":{
-                            "$ref": "#/definitions/message"
-                        }
-                    },
-                    "500":{
-                        "decription": "Server fail",
-                        "schema":{
-                            "$ref": "#/definitions/message"
-                        }
-                    }
-                }
-            }
-        },
-        "/direction/generateDirection":{
-            "post":{
-                "tags":["Direction"],
-                "parameters":[
-                    {
-                        "name":"Authorization",
-                        "type":"string",
-                        "in":"header",
-                        "description":"Jwt sign by user's apiKey"
-                    },
-                    {
-                        "name":"phone",
-                        "type":"string",
-                        "in":"Authorization",
-                        "description":"User's phone"
+                        "in":"body",
+                        "description":"Driver's location format: '(lat),(lng)', example: '24.990750,121.294920' "
                     }
                 ],
                 "responses":{
                     "200":{
                         "description": "OK, and return json data of google directionResponse"
+                    },
+                    "401":{
+                        "decription": "Bad token",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "/pickupList/generatePickupList":{
+            "post":{
+                "description":"新增或修改接送單",
+                "tags":["PickupList"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    },
+                    {
+                        "name":"body",
+                        "type":"object",
+                        "properties":{
+                            "phone":{
+                                "type":"string"
+                            },
+                            "pickup_lists":{
+                                "type":"array",
+                                "items":{
+                                    "type":"object",
+                                    "properties":{
+                                        "driver":{
+                                            "type":"object",
+                                            "properties":{
+                                                "phone":{
+                                                    "type":"string"
+                                                },
+                                                "location":{
+                                                    "type":"string"
+                                                }
+                                            }
+                                        },
+                                        "teacher":{
+                                            "type":"object",
+                                            "properties":{
+                                                "phone":{
+                                                    "type":"string"
+                                                }
+                                            }
+                                        },
+                                        "child_list":{
+                                            "type":"array",
+                                            "items":{
+                                                "type":"object",
+                                                "properties":{
+                                                    "uuid": {
+                                                        "type":"string"
+                                                    },
+                                                    "name": {
+                                                        "type":"string"
+                                                    },
+                                                    "address": {
+                                                        "type":"string"
+                                                    },
+                                                    "class_number": {
+                                                        "type":"string"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "in":"body"
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description": "OK",
+                        "schema":{
+                            "type":"object",
+                            "properties":{
+                                "pickup_lists":{
+                                    "type":"array",
+                                    "items":{
+                                        "type":"object",
+                                        "properties":{
+                                            "uuid":{
+                                                "type":"string"
+                                            },
+                                            "driver":{
+                                                "type":"object",
+                                                "properties":{
+                                                    "phone":{
+                                                        "type":"string"
+                                                    },
+                                                    "location":{
+                                                        "type":"string"
+                                                    }
+                                                }
+                                            },
+                                            "teacher":{
+                                                "type":"object",
+                                                "properties":{
+                                                    "phone":{
+                                                        "type":"string"
+                                                    }
+                                                }
+                                            },
+                                            "child_list":{
+                                                "type":"array",
+                                                "items":{
+                                                    "type":"object",
+                                                    "properties":{
+                                                        "uuid": {
+                                                            "type":"string"
+                                                        },
+                                                        "name": {
+                                                            "type":"string"
+                                                        },
+                                                        "address": {
+                                                            "type":"string"
+                                                        },
+                                                        "class_number": {
+                                                            "type":"string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401":{
+                        "decription": "Bad token",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "/pickupList/generateDirection":{
+            "post":{
+                "description":"產生路線並記錄接送順序",
+                "tags":["PickupList"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    },
+                    {
+                        "name":"body",
+                        "type":"object",
+                        "properties":{
+                            "phone":{
+                                "type":"string"
+                            },
+                            "location":{
+                                "type":"string"
+                            }
+                        },
+                        "in":"body",
+                        "description":"Driver's location format: '(lat),(lng)', example: '24.990750,121.294920' "
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description": "OK, and return json data of google directionResponse"
+                    },
+                    "401":{
+                        "decription": "Bad token",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "/pickupList":{
+            "get":{
+                "description":"取得未完成的接送單",
+                "tags":["PickupList"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description": "OK",
+                        "schema":{
+                            "type":"object",
+                            "properties":{
+                                "pickup_lists":{
+                                    "type":"array",
+                                    "items":{
+                                        "type":"object",
+                                        "properties":{
+                                            "uuid":{
+                                                "type":"string"
+                                            },
+                                            "phone":{
+                                                "type":"string"
+                                            },
+                                            "driver":{
+                                                "type":"object",
+                                                "properties":{
+                                                    "phone":{
+                                                        "type":"string"
+                                                    },
+                                                    "location":{
+                                                        "type":"string"
+                                                    }
+                                                }
+                                            },
+                                            "teacher":{
+                                                "type":"object",
+                                                "properties":{
+                                                    "phone":{
+                                                        "type":"string"
+                                                    }
+                                                }
+                                            },
+                                            "child_list":{
+                                                "type":"array",
+                                                "items":{
+                                                    "type":"object",
+                                                    "properties":{
+                                                        "uuid": {
+                                                            "type":"string"
+                                                        },
+                                                        "name": {
+                                                            "type":"string"
+                                                        },
+                                                        "address": {
+                                                            "type":"string"
+                                                        },
+                                                        "class_number": {
+                                                            "type":"string"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "no_pickup":{
+                                    "type": "array",
+                                    "items":{
+                                        "type": "object",
+                                        "properties":{
+                                            "uuid": {
+                                                "type":"string"
+                                            },
+                                            "name": {
+                                                "type":"string"
+                                            },
+                                            "address": {
+                                                "type":"string"
+                                            },
+                                            "class_number": {
+                                                "type":"string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401":{
                         "decription": "Bad token",
@@ -974,7 +1088,7 @@
                         "type": "string"
                     },
                     "pickup":{
-                        "type":"string"
+                        "type":"boolean"
                     }
                 }
             }
@@ -1016,6 +1130,9 @@
         "message":{
             "type":"object",
             "properties":{
+                "code":{
+                    "type":"string"
+                },
                 "type":{
                     "type": "string"
                 },

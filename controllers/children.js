@@ -4,7 +4,7 @@ const PickupList = require('../models/database/mongo/DataBase/pickupList');
 module.exports = {
     getPickupDay,
     getPickupStatus,
-    modifyPickupDays
+    modifyPickupRule
 }
 
 async function getPickupDay(){
@@ -58,6 +58,15 @@ async function getPickupDay(){
         if(!pickup[i]) pickup[i] = []
         if(!no_pickup[i]) no_pickup[i]= []
     }
+    for(let i = 0 ; i < 7; i++){
+        let tmp = []
+        for (let j = 0; j < pickup[i].length; j++){
+            if(pickup[i][j]){
+                tmp.push(pickup[i][j])
+            }
+        }
+        pickup[i] = tmp
+    }
     return {
         pickup,
         no_pickup
@@ -109,10 +118,22 @@ async function getPickupStatus(children){
     return pickupStatus
 }
 
-async function modifyPickupDays(pickupDays_list){
+async function modifyPickupRule(pickupRule_list){
     let query_array = []
-    pickupDays_list.forEach(pickupDays=>{
-        query_array.push(User.updateOne({'user.uuid':pickupDays.uuid},{'user.pickupDay':pickupDays.pickupDays}))
+    pickupRule_list.forEach(pickupRule=>{
+        if(pickupRule.pickupDays && pickupRule.car_number){
+            query_array.push(User.updateOne(
+                {'user.uuid':pickupRule.uuid},
+                {
+                    'user.pickupDay':pickupRule.pickupDays,
+                    'user.car_number':pickupRule.car_number
+                }
+            ))
+        }else if(!pickupRule.pickupDays){
+            query_array.push(User.updateOne({'user.uuid':pickupRule.uuid},{'user.car_number':pickupRule.car_number}))
+        }else{
+            query_array.push(User.updateOne({'user.uuid':pickupRule.uuid},{'user.pickupDay':pickupRule.pickupDays}))
+        }
     })
     Promise.all(query_array)
 }

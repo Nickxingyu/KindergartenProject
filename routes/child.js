@@ -5,7 +5,7 @@ const {api_message, database_message, message} = require('../models/enum/msg_enu
 const PickupList = require('../models/database/mongo/DataBase/pickupList');
 const User = require('../models/database/mongo/DataBase/user');
 const Direction = require('../models/database/mongo/DataBase/direction');
-const {getPickupStatus, getPickupDay, modifyPickupDays} = require('../controllers/children');
+const {getPickupStatus, getPickupDay, modifyPickupRule} = require('../controllers/children');
 
 router.post('/addParent',async(req, res, next)=>{
     let {phone, password, name} = req.body
@@ -215,11 +215,11 @@ router.post('/arrive', (req, res, next) => {
     })
 })
 
-router.put('/modifyPickupDays', async(req, res, next)=>{
-    const {pickupDays_list} = req.body;
+router.put('/modifyPickupRule', async(req, res, next)=>{
+    const {pickupRule_list} = req.body;
     let result;
     try{
-        result = await modifyPickupDays(pickupDays_list);
+        result = await modifyPickupRule(pickupRule_list);
     }catch(e){
         res.status(500).json({
             code:"4",

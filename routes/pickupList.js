@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {v4:uuidv4} = require('uuid');
+const config = require('../config/config.json')
 
 const PickupList = require('../models/database/mongo/DataBase/pickupList');
 const Direction = require('../models/database/mongo/DataBase/direction')
@@ -21,7 +22,8 @@ router.post('/generatePickupList', async(req, res, next) => {
 })
 
 router.post('/generateDirection', async(req, res, next) => {
-    let {phone, location} = req.body
+    const {phone} = req.body
+    const location = req.body.location || config.kindergarten.address
     let pickupLists
     let chosen_pickupList
     let number
@@ -82,6 +84,7 @@ router.post('/generateDirection', async(req, res, next) => {
             generateDirection(address_list, (err, direction)=>{
                 if(err) next(err)
                 else{
+                    const address_order = []
                     const place_ids = 
                         direction.geocoded_waypoints
                         .slice(0,direction.geocoded_waypoints.length-1)
@@ -90,10 +93,16 @@ router.post('/generateDirection', async(req, res, next) => {
                         direction.routes[0].waypoint_order
                         .map(order=>order+1)
                     )
+                    for(let i = 0 ; i < direction.routes[0].waypoint_order.length; i++){
+                        let index = direction.routes[0].waypoint_order[i]
+                        address_order.push(chosen_pickupList.child_list[index].address)
+                    }
+                    direction.address_order = address_order;
                     Direction.insertMany({
                         pickupList: chosen_pickupList_uuid,
-                        waypoint_order,
-                        place_ids
+                        waypoint_order: waypoint_order,
+                        place_ids,
+                        address_order
                     },(err)=>{
                         if(err) next(message.Database_fail(err))
                         else{

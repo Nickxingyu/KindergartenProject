@@ -17,8 +17,8 @@ function getDirection(location, direction, callback){
         },
         timeout: 3000
     }).then(result=>{
-        console.log(result)
-        const result_json = result.data
+        let result_json = result.data
+        result_json.address_order = direction.address_order
         return callback(null, result_json)
     }).catch(err=>{
         console.log(err)

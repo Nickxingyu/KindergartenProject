@@ -32,6 +32,11 @@ app.use('/driver',driver);
 app.use('/teacher',teacher)
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use((err, req, res, next)=>{
+    console.log(err)
+    const {status, msg} = err
+    res.status(status).json(msg)
+})
 
 require("./models/database/redis/connect");
 require("./models/database/mongo/connect")(mongoose, ()=>{

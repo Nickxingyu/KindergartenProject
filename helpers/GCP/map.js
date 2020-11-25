@@ -2,6 +2,8 @@ const {Client} = require("@googlemaps/google-maps-services-js");
 const client = new Client({});
 const key = require('../../config/config.json').google.Map_Api_Key;
 const kindergarten_address = require('../../config/config.json').kindergarten.address;
+const ES_address = require('../../config/config.json').English_school.address;
+const message = require("../../models/enum/msg_enum");
 
 function getDirection(location, direction, callback){
     const waypoints = direction.place_ids.map(place_id => {
@@ -17,19 +19,17 @@ function getDirection(location, direction, callback){
         },
         timeout: 3000
     }).then(result=>{
-        console.log(result)
         const result_json = result.data
         return callback(null, result_json)
     }).catch(err=>{
-        console.log(err)
-        return callback(err)
+        return callback(message.GCP_error(err))
     })
 }
 
 function generateDirection(address_list, callback){
     return client.directions({
         params:{
-            origin: kindergarten_address,
+            origin: ES_address,
             destination: kindergarten_address,
             waypoints: address_list,
             optimize: true,
@@ -41,7 +41,7 @@ function generateDirection(address_list, callback){
         return callback(null, result_json)
     })
     .catch(err=>{
-        return callback(err)
+        return callback(message.GCP_error(err))
     })
 }
 
@@ -63,7 +63,7 @@ function computeRemainingTime(places, callback){
         }
         return callback(null, remaining_time)
     }).catch(err=>{
-        return callback(err)
+        return callback(message.GCP_error(err))
     })
 }
 

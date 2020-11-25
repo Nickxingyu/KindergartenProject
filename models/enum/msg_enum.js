@@ -1,200 +1,36 @@
 function msg_type_generator(type){
-    return function(message, code){
+    return function(status, code, description, error){
         return {
-            code,
-            type,
-            message
+            status,
+            msg:{
+                code,
+                type,
+                description
+            },
+            error
         }
     }
 }
 
-const login_message = msg_type_generator('Login_message');
-const verification_code_message = msg_type_generator('Verification_code_message');
-const decrypt_message = msg_type_generator('Decrypt message');
-const message = msg_type_generator('message');
-const api_message = msg_type_generator('api_message');
-const database_message = msg_type_generator('database_message');
+const Message = msg_type_generator('Message')
+const Authentication = msg_type_generator('Authentication')
+const Database = msg_type_generator('Database')
+const GCP = msg_type_generator('GCP')
+const AWS = msg_type_generator('AWS')
 
 module.exports = {
-    login_message:{
-        content_not_complete: () => { 
-            const code = {
-                type: 0,
-                message: 0
-            }
-            return login_message('Content not complete', code) 
-        },
-        no_user_founded: () => {
-            const code = {
-                type: 0,
-                message: 1
-            }
-            return login_message('No user founded', code) 
-        },
-        wrong_password: () => { 
-            const code = {
-                type: 0,
-                message: 2
-            }
-            return login_message('Wrong password') 
-        },
-        authentication_succeeded: () => { 
-            const code = {
-                type: 0,
-                message: 3
-            }
-            return login_message('Authentication succeeded') 
-        },
-        invalid_verification_code: () => { 
-            const code = {
-                type: 0,
-                message: 4
-            }
-            return login_message('Invalid verification code') 
-        },
-        invalid_publicKey: () => { 
-            const code = {
-                type: 0,
-                message: 5
-            }
-            return login_message('Invalid client public key') 
-        },
-        invalid_jwt_signature: () => { 
-            const code = {
-                type: 0,
-                message: 6
-            }
-            return login_message('Invalid jwt sigature') 
-        },
-        no_public_key: () => { 
-            const code = {
-                type: 0,
-                message: 7
-            }
-            return login_message('No client public key') 
-        }
-    },
-    verification_code_message:{
-        no_user_founded: () => { 
-            const code = {
-                type: 1,
-                message: 0
-            }
-            return verification_code_message('No user founded') 
-        },
-        expired_verification_code: () => {
-            const code = {
-                type: 1,
-                message: 1
-            } 
-            return verification_code_message('Expired verification code') 
-        },
-        verification_code_is_not_expired: () => { 
-            const code = {
-                type: 1,
-                message: 2
-            }
-            return verification_code_message("Verification code isn't expired") 
-        },
-        code_is_sended: () => { 
-            const code = {
-                type: 1,
-                message: 3
-            }
-            return verification_code_message('Verification code is sended') 
-        },
-        no_verification_code_founded: () => { 
-            const code = {
-                type: 1,
-                message: 4
-            }
-            return verification_code_message('No verification code founded') 
-        }
-    },
-    decrypt_message:{
-        invalid_publicKey: () => { 
-            const code = {
-                type: 2,
-                message: 0
-            }
-            return decrypt_message('Invalid publicKey') 
-        }
-    },
-    message:{
-        succeed: () => { 
-            const code = {
-                type: 3,
-                message: 0
-            }
-            return message('succeed') 
-        }
-    },
-    api_message:{
-        content_not_complete: () => { 
-            const code = {
-                type: 4,
-                message: 0
-            }
-            return api_message('Content not complete') 
-        },
-        not_use_service: () => { 
-            const code = {
-                type: 4,
-                message: 1
-            }
-            return api_message('Not use this service') 
-        },
-        child_uuid_error: () => { 
-            const code = {
-                type: 4,
-                message: 2
-            }
-            return api_message('Child uuid is not founded') 
-        },
-        child_not_in_pickup_list: () => { 
-            const code = {
-                type: 4,
-                message: 3
-            }
-            return api_message('Child is not in pickup list') 
-        }
-    },
-    database_message:{
-        database_fail: () => { 
-            const code = {
-                type: 5,
-                message: 0
-            }
-            return database_message('Database Fail') 
-        },
-        no_user_founded: () => {
-            const code = {
-                type: 5,
-                message: 1
-            } 
-            return database_message('No user founded') 
-        },
-        lost_information: () => {
-            const code = {
-                type: 5,
-                message: 2
-            }
-            return database_message('Database lost some information') 
-        },
-        lost_pickupList: () => {
-            const code = {
-                type: 5,
-                message: 3
-            }
-            return database_message('Database lost pickupList') 
-        },
-        lost_direction: () => {
-            const code = {
-                type: 5,
-                message: 4
-            }
-            return database_message('Database lost direction') 
-        }
-    }
+    OK: (err)=> Message(200, 1, "OK", err),
+    Access_deny: (err)=> Authentication(401, 2, "Access deny", err),
+    Content_not_complete: (err)=> Authentication(401, 3, "Content not complete", err),
+    Database_fail: (err)=>Database(500, 4, "Database fail", err),
+    Invalid: (err)=>Authentication(401, 5, "Invalid verification code or password", err),
+    No_user_found: (err)=>Message(200, 6, "No user found", err),
+    Expired_verification_code: (err)=>Authentication(401, 7, "Verification code is expired", err),
+    Verification_code_is_not_expired: (err)=>Authentication(401, 8, "Verification code isn't expired", err),
+    Database_error: (err)=>Database(500, 9, "Database error", err),
+    GCP_error: (err)=>GCP(500, 10, "GCP error",err),
+    Wrong_password: (err)=> Authentication(401, 9, "Wrong password", err),
+    Invalid_public_key: (err)=> Authentication(401, 10, "Invalid public key", err),
+    SNS_error: (err)=> AWS(500, 11, "SNS error", err),
+    Code_is_sended: (err)=> AWS(200, 12, "Code is sended", err)
 }
-

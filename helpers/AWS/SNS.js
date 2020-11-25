@@ -9,14 +9,14 @@ sns.setSMSAttributes({attributes:{DefaultSMSType: 'Transactional'}}, function(er
   })
 
 module.exports = {
-    sms_now: (phone, msg, callback) => {
+    sms_now: async(phone, msg) => {
         phone = '+886' + phone.slice(1);
         const params = {
             PhoneNumber : phone,
             Message : msg
         };
-    
-        sns.publish(params,callback)
-        
+        sns.publish(params,(err, data)=>{
+            if (err) console.log(err)
+        })
     }
 }

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {v4: uuidv4} = require('uuid');
 
-const {database_message, message, api_message} = require('../models/enum/msg_enum');
+const message = require('../models/enum/msg_enum');
 const User = require('../models/database/mongo/DataBase/user');
 
 router.post('/add',async(req, res, next)=>{
@@ -13,8 +13,7 @@ router.post('/add',async(req, res, next)=>{
         try{
             user = await User.findOne({'user.phone':phone})
         }catch(e){
-            const {status, error} = database_fail(e)
-            res.status(status).json(error)
+            next(message.Database_fail(e))
         }
         if(!user){
             const uuid = uuidv4();
@@ -30,7 +29,7 @@ router.post('/add',async(req, res, next)=>{
                     }
                 }
             ],(err, result)=>{
-                if(err) res.status(500).json(database_message.database_fail())
+                if(err) next(message.Database_fail(err))
                 else res.json(message.succeed())
             })
         }else{
@@ -38,10 +37,9 @@ router.post('/add',async(req, res, next)=>{
             try{
                 await user.save()
             }catch(e){
-                const {status, error} = database_fail(e)
-                res.status(status).json(error)
+                next(message.Database_fail(e))
             }
-            res.json(message.succeed())
+            res.json(message.OK().msg)
         }
     }
 })
@@ -54,8 +52,7 @@ router.post('/addPrincipal',async(req, res, next)=>{
         try{
             user = await User.findOne({'user.phone':phone})
         }catch(e){
-            const {status, error} = database_fail(e)
-            res.status(status).json(error)
+            next(message.Database_fail(e))
         }
         if(!user){
             const uuid = uuidv4();
@@ -71,7 +68,7 @@ router.post('/addPrincipal',async(req, res, next)=>{
                     }
                 }
             ],(err, result)=>{
-                if(err) res.status(500).json(database_message.database_fail())
+                if(err) next(message.Database_fail(err))
                 else res.json(message.succeed())
             })
         }else{
@@ -79,10 +76,9 @@ router.post('/addPrincipal',async(req, res, next)=>{
             try{
                 await user.save()
             }catch(e){
-                const {status, error} = database_fail(e)
-                res.status(status).json(error)
+                next(message.Database_fail(e))
             }
-            res.json(message.succeed())
+            res.json(message.OK().msg)
         }
     }
 })
@@ -91,7 +87,7 @@ router.get('/allTeacher',(req,res,next)=>{
     User.find({
         'user.roles':'teacher'
     },(err, users)=>{
-        if(err) res.status(500).json(database_message.database_fail())
+        if(err) next(message.Database_fail(err))
         else{
             const teachers = users.map(user=>{
                 const {uuid, name, phone} = user.user
@@ -105,18 +101,5 @@ router.get('/allTeacher',(req,res,next)=>{
         }
     })
 })
-
-function database_fail(e){
-    console.log("Database fail!! \n")
-    console.log(e)
-    return {
-        status:500,
-        error:{
-            code:"4",
-            type:"Database",
-            message:"Database fail"
-        }
-    }
-}
 
 module.exports = router;

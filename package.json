@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@googlemaps/google-maps-services-js": "^3.1.13",
+    "async-redis": "^1.1.7",
     "aws-sdk": "^2.756.0",
     "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",

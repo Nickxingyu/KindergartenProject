@@ -1,5 +1,7 @@
 const User = require('../models/database/mongo/DataBase/user');
 const PickupList = require('../models/database/mongo/DataBase/pickupList');
+const message = require('../models/enum/msg_enum');
+const config = require('../config/config.json');
 
 const { v4: uuidv4 } = require('uuid');
 
@@ -12,7 +14,9 @@ async function generatePickupList(pickup_lists){
     try{
         await PickupList.updateMany({status:'wait_for_direction'},{status:'cancel'})
     }catch(e){
-        return database_fail(e)
+        return {
+            error: message.Database_fail(e)
+        }
     }
     for(let i = 0; i < pickup_lists.length; i++){
         let pickup_list = pickup_lists[i];
@@ -38,25 +42,9 @@ async function generatePickupList(pickup_lists){
     try{
         result = await PickupList.insertMany(pickup_lists)
     }catch(e){
-        return database_fail(e)
-    }
-    return result
-}
-
-async function children_query(children_query_array){
-    Promise.all(children_query_array)
-}
-
-
-function database_fail(e){
-    console.log("Database fail!! \n")
-    console.log(e)
-    return {
-        status:500,
-        error:{
-            code:"4",
-            type:"Database",
-            message:"Database fail"
+        return {
+            error: message.Database_fail(e)
         }
     }
+    return result
 }

@@ -1,5 +1,6 @@
 const User = require('../models/database/mongo/DataBase/user');
 const PickupList = require('../models/database/mongo/DataBase/pickupList');
+const message = require('../models/enum/msg_enum');
 
 module.exports = {
     getPickupDay,
@@ -14,22 +15,15 @@ async function getPickupDay(){
     try{
         children = await User.find({'user.roles':'child'});
     }catch(e){
-        console.log("Database fail!! \n")
-        console.log(e)
         return {
-            status:500,
-            error:{
-                code:"4",
-                type:"Database",
-                message:"Database fail"
-            }
+            error: message.Database_fail()
         }
     }
     children.forEach(child=>{
         const {pickupDay, uuid, name, class_number, address, phone} = child.user
-        const car_number = child.user.car_number || 0;
         for(let i = 0; i < 7; i++){
-            if(pickupDay[i]){
+            if(pickupDay[i] !== null){
+                let car_number = pickupDay[i]
                 let car_array = pickup[i] || []
                 let list =  car_array[car_number] || []
                 list.push({
@@ -85,15 +79,8 @@ async function getPickupStatus(children){
     try{
         pickupLists = await PickupList.find({uuid: {'$in':pickupList_uuid_list}})
     }catch(e){
-        console.log("Database fail!! \n")
-        console.log(e)
         return {
-            status:500,
-            error:{
-                code:"4",
-                type:"Database",
-                message:"Database fail"
-            }
+            error: message.Database_fail()
         }
     }
     children.forEach(child=>{

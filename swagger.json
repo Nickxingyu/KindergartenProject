@@ -34,58 +34,6 @@
         "application/json"
     ],
     "paths":{
-        "/users/loginByPassword":{
-            "post":{
-                "tags":["User"],
-                "parameters":[
-                    {
-                        "name":"body",
-                        "type":"string",
-                        "in":"body",
-                        "required":"true",
-                        "schema":{
-                            "type":"object",
-                            "properties":{
-                                "phone":{
-                                    "type":"string"
-                                },
-                                "password":{
-                                    "type":"string"
-                                }
-                            }
-                        }
-                    }
-                ],
-                "responses":{
-                    "200": {
-                        "description": "OK",
-                        "headers":{
-                            "Authorization":{
-                                "schema":{
-                                    "type":"string"
-                                },
-                                "description":"Jwt sign by server apikey."
-                            }
-                        },
-                        "schema":{
-                            "$ref": "#/definitions/message"
-                        }
-                    },
-                    "401":{
-                        "decription": "Bad post",
-                        "schema":{
-                            "$ref": "#/definitions/message"
-                        }
-                    },
-                    "500":{
-                        "decription": "Server fail",
-                        "schema":{
-                            "$ref": "#/definitions/message"
-                        }
-                    }
-                }
-            }
-        },
         "/users/loginByVerificationCode":{
             "post":{
                 "description":"透過驗證碼登入",
@@ -139,52 +87,6 @@
                 }
             }
         },
-        "/users/modifyPassword":{
-            "post":{
-                "tags":["User"],
-                "parameters":[
-                    {
-                        "name":"body",
-                        "type":"string",
-                        "in":"body",
-                        "schema":{
-                            "type":"object",
-                            "properties":{
-                                "phone":{
-                                    "type":"string"
-                                },
-                                "code":{
-                                    "type":"string"
-                                },
-                                "password":{
-                                    "type":"string"
-                                }
-                            }
-                        }
-                    }
-                ],
-                "responses":{
-                    "200": {
-                        "description": "OK",
-                        "schema":{
-                            "$ref": "#/definitions/message"
-                        }
-                    },
-                    "401":{
-                        "decription": "Bad token or post",
-                        "schema":{
-                            "$ref": "#/definitions/message"
-                        }
-                    },
-                    "500":{
-                        "decription": "Server fail",
-                        "schema":{
-                            "$ref": "#/definitions/message"
-                        }
-                    }
-                }
-            }
-        },
         "/child/add":{
             "post":{
                 "tags":["Child"],
@@ -212,13 +114,10 @@
                             "class_number":{
                                 "type":"string"
                             },
-                            "car_number":{
-                                "type":"string"
-                            },
                             "pickupDays":{
                                 "type":"array",
                                 "items":{
-                                    "type":"boolean"
+                                    "type":"number"
                                 }
                             }
                         },
@@ -439,19 +338,22 @@
                                     "items":{
                                         "type":"array",
                                         "items":{
-                                            "type":"object",
-                                            "properties":{
-                                                "uuid":{
-                                                    "type":"string"
-                                                },
-                                                "name":{
-                                                    "type":"string"
-                                                },
-                                                "address":{
-                                                    "type":"string"
-                                                },
-                                                "class_number":{
-                                                    "type":"string"
+                                            "type":"array",
+                                            "items":{
+                                                "type":"object",
+                                                "properties":{
+                                                    "uuid":{
+                                                        "type":"string"
+                                                    },
+                                                    "name":{
+                                                        "type":"string"
+                                                    },
+                                                    "address":{
+                                                        "type":"string"
+                                                    },
+                                                    "class_number":{
+                                                        "type":"string"
+                                                    }
                                                 }
                                             }
                                         }
@@ -495,51 +397,6 @@
                         }
                     }
                 }
-            }
-        },
-        "/child/modifyPickupRule":{
-            "put":{
-                "description":"改變學生例行性接送的時間和娃娃車班次",
-                "tags":["Child"],
-                "parameters":[
-                    {
-                        "name":"Authorization",
-                        "type":"string",
-                        "in":"header",
-                        "description":"Jwt sign by user's apiKey"
-                    },
-                    {
-                        "name":"body",
-                        "type":"object",
-                        "properties":{
-                            "phone":{
-                                "type":"string"
-                            },
-                            "pickupRule_list":{
-                                "type":"array",
-                                "items":{
-                                    "type": "object",
-                                    "properties":{
-                                        "uuid":{
-                                            "type":"string"
-                                        },
-                                        "pickupDays":{
-                                            "type":"array",
-                                            "items":{
-                                                "type":"boolean"
-                                            }
-                                        },
-                                        "car_number":{
-                                            "type":"string"
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        "in":"body",
-                        "description":"pickupDays_list中每個元素對應到一個小孩的uuid及長度為七的Array,從星期天(0)到星期六(6)表示是否要接送"
-                    }
-                ]
             }
         },
         "/teacher/add":{
@@ -949,6 +806,114 @@
                 "responses":{
                     "200":{
                         "description": "OK, and return json data of google directionResponse"
+                    },
+                    "401":{
+                        "decription": "Bad token",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "/pickupList/addChildren":{
+            "post":{
+                "description":"將小孩加入固定名單",
+                "tags":["PickupList"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    },
+                    {
+                        "name":"body",
+                        "type":"object",
+                        "properties":{
+                            "day":{
+                                "type":"number",
+                                "description":"選擇星期一到星期天其中一天的接送單"
+                            },
+                            "car":{
+                                "type":"number",
+                                "description":"選擇車次"
+                            },
+                            "child_list":{
+                                "type":"array",
+                                "items":{
+                                    "type":"string"
+                                },
+                                "description":"要加入該名單的小孩uuid"
+                            }
+                        },
+                        "in":"body"
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "401":{
+                        "decription": "Bad token",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    },
+                    "500":{
+                        "decription": "Server fail",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
+                    }
+                }
+            }
+        },
+        "/pickupList/removeChildren":{
+            "post":{
+                "description":"將小孩從固定名單中移除",
+                "tags":["PickupList"],
+                "parameters":[
+                    {
+                        "name":"Authorization",
+                        "type":"string",
+                        "in":"header",
+                        "description":"Jwt sign by user's apiKey"
+                    },
+                    {
+                        "name":"body",
+                        "type":"object",
+                        "properties":{
+                            "day":{
+                                "type":"number",
+                                "description":"選擇星期一到星期天其中一天的接送單"
+                            },
+                            "child_list":{
+                                "type":"array",
+                                "items":{
+                                    "type":"string"
+                                },
+                                "description":"要從該名單的移除的小孩uuid"
+                            }
+                        },
+                        "in":"body"
+                    }
+                ],
+                "responses":{
+                    "200":{
+                        "description":"OK",
+                        "schema":{
+                            "$ref": "#/definitions/message"
+                        }
                     },
                     "401":{
                         "decription": "Bad token",

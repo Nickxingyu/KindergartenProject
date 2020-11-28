@@ -13,7 +13,7 @@ const child = require('./routes/child');
 const driver = require('./routes/driver');
 const teacher = require('./routes/teacher');
 const pickupList = require('./routes/pickupList');
-const { JwtToBody } = require("./middlewares/validations/authorization/accessValidate");
+const { API_ACCESS_RIGHT_CHECK } = require("./middlewares/validations/authorization/accessValidate");
 
 var app = express();
 var port = config.server.port;
@@ -25,6 +25,7 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(helmet());
 app.use(logger(':date - :method :url HTTP/:http-version :status - :response-time ms'));
+app.use(API_ACCESS_RIGHT_CHECK)
 app.use('/users',users);
 app.use('/child',child);
 app.use('/pickupList', pickupList);

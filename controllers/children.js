@@ -87,18 +87,23 @@ async function getPickupStatus(children){
         let {uuid, name} = child.user
         pickupLists.forEach(pickupList=>{
             if(pickupList.uuid == child.user.pickupList){
+                let wait = false
                 let remaining_time = null;
                 const {location} = pickupList.driver;
                 const children_status = pickupList.child_list;
                 children_status.forEach(child_status=>{
-                    if(child_status.uuid == child.user.uuid) remaining_time = child_status.remaining_time
+                    if(child_status.uuid == child.user.uuid) {
+                        remaining_time = child_status.remaining_time
+                        if(child_status.status == 'wait') wait = true
+                    }
                 })
-                pickupStatus.push({
-                    uuid,
-                    name,
-                    remaining_time,
-                    location
-                })
+                if(wait)
+                    pickupStatus.push({
+                        uuid,
+                        name,
+                        remaining_time,
+                        location
+                    })
             }
         })
     })

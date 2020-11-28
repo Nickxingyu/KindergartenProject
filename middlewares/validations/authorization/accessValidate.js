@@ -12,7 +12,7 @@ async function API_ACCESS_RIGHT_CHECK(req, res, next){
     const method = req.method
     const api_pathname = url.parse(req.url).pathname
     const Allow_roles = Api_Role_Table[method][api_pathname]
-    if(Api_Role_Table[method].All.includes(api_pathname)){
+    if(Api_Role_Table[method].All.includes(api_pathname) || !Allow_roles){
         next()
     }else{
         if(method == 'GET'){

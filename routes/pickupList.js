@@ -1,12 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const {v4:uuidv4} = require('uuid');
 const config = require('../config/config.json')
 
 const PickupList = require('../models/database/mongo/DataBase/pickupList');
 const Direction = require('../models/database/mongo/DataBase/direction')
 const User = require('../models/database/mongo/DataBase/user');
-const config = require('../config/config.json');
 const message = require('../models/enum/msg_enum');
 const { generateDirection, getDirection } = require('../helpers/GCP/map');    
 const { generatePickupList } = require('../controllers/pickupList');
@@ -84,7 +82,7 @@ router.post('/generateDirection', async(req, res, next) => {
             generateDirection(address_list, (err, direction)=>{
                 if(err) next(err)
                 else{
-                    const address_order = []
+                    const address_order = [config.English_school.address]
                     const place_ids = 
                         direction.geocoded_waypoints
                         .slice(0,direction.geocoded_waypoints.length-1)
@@ -94,8 +92,8 @@ router.post('/generateDirection', async(req, res, next) => {
                         .map(order=>order+1)
                     )
                     for(let i = 0 ; i < direction.routes[0].waypoint_order.length; i++){
-                        let index = direction.routes[0].waypoint_order[i]
-                        address_order.push(chosen_pickupList.child_list[index].address)
+                        let index = int(direction.routes[0].waypoint_order[i])
+                        address_order.push(chosen_pickupList.child_list[index-1].address)
                     }
                     direction.address_order = address_order;
                     Direction.insertMany({

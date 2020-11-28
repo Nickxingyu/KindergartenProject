@@ -837,6 +837,9 @@
                         "name":"body",
                         "type":"object",
                         "properties":{
+                            "phone":{
+                                "type":"string"
+                            },
                             "day":{
                                 "type":"number",
                                 "description":"選擇星期一到星期天其中一天的接送單"
@@ -893,6 +896,9 @@
                         "name":"body",
                         "type":"object",
                         "properties":{
+                            "phone":{
+                                "type":"string"
+                            },
                             "day":{
                                 "type":"number",
                                 "description":"選擇星期一到星期天其中一天的接送單"
